@@ -13,7 +13,8 @@
 
     <com.games.malcolm.graphgame.DrawingCanvas
         android:layout_height="match_parent"
-        android:layout_width="match_parent"/>
+        android:layout_width="match_parent"
+        android:id="@+id/drawing_canvas"/>
 
 
 </LinearLayout>

@@ -11,14 +11,16 @@ public class MainActivity extends AppCompatActivity {
 
     private static String TAG = "MainActivity";
 
-    private Button mButton;
+    private DrawingCanvas mDrawingCanvas;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mButton = (Button) findViewById(R.id.click_button);
+        mDrawingCanvas = (DrawingCanvas) findViewById(R.id.drawing_canvas);
+
+        /*mButton = (Button) findViewById(R.id.click_button);
 
         mButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -26,6 +28,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.e(TAG, "BUTTON WAS CLICKED");
                 Toast.makeText(getApplicationContext(), "Yay!", Toast.LENGTH_SHORT).show();
             }
-        });
+        });*/
     }
 }

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Graph Game</string>
+    <string name="button_text">Click me!</string>
 </resources>

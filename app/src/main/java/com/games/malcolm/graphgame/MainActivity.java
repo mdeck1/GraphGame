@@ -2,11 +2,14 @@ package com.games.malcolm.graphgame;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static String TAG = "MainActivity";
 
     private Button mButton;
 
@@ -20,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
         mButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.e(TAG, "BUTTON WAS CLICKED");
                 Toast.makeText(getApplicationContext(), "Yay!", Toast.LENGTH_SHORT).show();
             }
         });

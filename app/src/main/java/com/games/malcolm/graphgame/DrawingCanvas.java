@@ -9,6 +9,9 @@ import android.util.AttributeSet;
 import android.view.View;
 
 /**
+ * Class that implements the custom view which is used as the canvas on which we will be
+ * drawing graphics for our game.
+ *
  * Created by Malcolm on 2/26/2017.
  */
 

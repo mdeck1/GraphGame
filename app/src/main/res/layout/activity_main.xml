@@ -11,7 +11,7 @@
     tools:context="com.games.malcolm.graphgame.MainActivity"
     android:orientation="vertical">
 
-    <com.games.malcolm.graphgame.DrawingCanvas
+    <com.games.malcolm.graphgame.InteractiveCircleView
         android:layout_height="match_parent"
         android:layout_width="match_parent"
         android:id="@+id/drawing_canvas"/>

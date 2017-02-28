@@ -6,6 +6,9 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 
 /**
@@ -17,6 +20,7 @@ public class DrawingCanvas extends View {
     private Paint mTextPaint;
     private int mTextColor;
     private float mTextHeight;
+//    private GestureDetector mDetector = new GestureDetector(DrawingCanvas.this.getContext(), new mListener());
 
     public DrawingCanvas(Context context) {
         super(context);
@@ -26,11 +30,26 @@ public class DrawingCanvas extends View {
         super(context, attrs);
     }
 
+    private static String TAG = "DrawingCanvas";
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        Log.i(TAG, String.format("Size of Canvas: %d, %d", canvas.getHeight(), canvas.getWidth()));
+        canvas.drawCircle(492, 600, 20, new Paint());
+    }
 
-        canvas.drawCircle(100, 100, 20, new Paint());
+//    private class mListener extends GestureDetector.SimpleOnGestureListener {
+//        @Override
+//        public boolean onDown(MotionEvent e) {
+//            return true;
+//        }
+//    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent motionEvent) {
+        Log.i(TAG,"Touch detected.");
+        return true;
     }
 
     private void init() {

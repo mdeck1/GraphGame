@@ -11,22 +11,22 @@ public class MainActivity extends AppCompatActivity {
 
     private static String TAG = "MainActivity";
 
-    private DrawingCanvas mDrawingCanvas;
+    private InteractiveCircleView mInteractiveCircleView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mDrawingCanvas = (DrawingCanvas) findViewById(R.id.drawing_canvas);
+        mInteractiveCircleView = (InteractiveCircleView) findViewById(R.id.drawing_canvas);
 
         /*mButton = (Button) findViewById(R.id.click_button);
 
         mButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.e(TAG, "BUTTON WAS CLICKED");
-                Toast.makeText(getApplicationContext(), "Yay!", Toast.LENGTH_SHORT).show();
+                Log.i(TAG, "BUTTON WAS CLICKED");
+                Toast.makeText(getApplicationContext(), "Yay!", Toast.LENGTH_LONG).show();
             }
         });*/
     }

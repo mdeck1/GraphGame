@@ -188,7 +188,6 @@ public class InteractiveCircleView extends View {
             case MotionEvent.ACTION_POINTER_UP:
                 // not general pointer was up
                 pointerId = event.getPointerId(actionIndex);
-
                 mCirclePointer.remove(pointerId);
                 invalidate();
                 handled = true;

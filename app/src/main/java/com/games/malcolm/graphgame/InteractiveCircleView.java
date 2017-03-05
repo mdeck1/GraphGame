@@ -51,18 +51,52 @@ public class InteractiveCircleView extends View {
         }
     }
 
+    /** Stores data about a single edge **/
+    private static class EdgeLine {
+        int startX;
+        int startY;
+        int endX;
+        int endY;
+
+        EdgeLine(int startX, int startY, int endX, int endY) {
+            this.startX = startX;
+            this.startY = startY;
+            this.endX = endX;
+            this.endY = endY;
+        }
+
+        public void flip() {
+            int tmpX = startX;
+            int tmpY = startY;
+            startX = endX;
+            startY = endY;
+            endX = tmpX;
+            endY = tmpY;
+        }
+
+        @Override
+        public String toString() {
+            return "Edge[" + startX + ", " + startY + ", " + endX + ", " + endY +"]";
+        }
+    }
+
     /** Paint to draw circles */
     private Paint mCirclePaint;
+    private Paint mEdgePaint;
 
     private final Random mRadiusGenerator = new Random();
     // Radius limit in pixels
-    private final static int RADIUS_LIMIT = 100;
+    private final static int RADIUS_LIMIT = 40;
 
-    private static final int CIRCLES_LIMIT = 3;
+    private static final int CIRCLES_LIMIT = 5;
+    private static final int EDGES_LIMIT = 9; // with |V| = 5, |E|=10 is K5, so limit to 9
+
 
     /** All available circles */
     private HashSet<CircleArea> mCircles = new HashSet<>(CIRCLES_LIMIT);
     private SparseArray<CircleArea> mCirclePointer;
+    /** All available edges */
+    private HashSet<EdgeLine> mEdges = new HashSet<>(EDGES_LIMIT);
 
     /**
      * Default constructor
@@ -92,9 +126,14 @@ public class InteractiveCircleView extends View {
 
         mCirclePaint = new Paint();
 
-        mCirclePaint.setColor(Color.BLUE);
-        mCirclePaint.setStrokeWidth(40);
+        mCirclePaint.setColor(Color.BLACK);
+        mCirclePaint.setStrokeWidth(20);
         mCirclePaint.setStyle(Paint.Style.FILL);
+
+        mEdgePaint = new Paint();
+
+        mEdgePaint.setColor(Color.GRAY);
+        mEdgePaint.setStrokeWidth(20);
     }
 
     @Override
@@ -104,6 +143,9 @@ public class InteractiveCircleView extends View {
 //        canv.drawRect((SCREEN_WIDTH / 4) - 120, 0, (SCREEN_WIDTH / 4) + 120, SCREEN_HEIGHT, mRectPaintLeft);
 //        canv.drawRect((3 * SCREEN_WIDTH / 4) - 120, 0, (3 * SCREEN_WIDTH / 4) + 120, SCREEN_HEIGHT, mRectPaintRight);
 
+        for (EdgeLine edge : mEdges) {
+            canv.drawLine(edge.startX, edge.startY, edge.endX, edge.endY, mEdgePaint);
+        }
         for (CircleArea circle : mCircles) {
             canv.drawCircle(circle.centerX, circle.centerY, circle.radius, mCirclePaint);
         }
@@ -130,8 +172,9 @@ public class InteractiveCircleView extends View {
 
                 // check if we've touched inside some circle
                 touchedCircle = obtainTouchedCircle(xTouch, yTouch);
-                touchedCircle.centerX = xTouch;
-                touchedCircle.centerY = yTouch;
+//                touchedCircle.centerX = xTouch;
+//                touchedCircle.centerY = yTouch;
+
                 mCirclePointer.put(event.getPointerId(0), touchedCircle);
 
                 invalidate();
@@ -170,7 +213,8 @@ public class InteractiveCircleView extends View {
 
                     touchedCircle = mCirclePointer.get(pointerId);
 
-                    if (null != touchedCircle) {
+                    if (null != touchedCircle && !intersectsCircles(xTouch, yTouch, touchedCircle)) {
+                        moveTouchingEdges(touchedCircle, xTouch, yTouch);
                         touchedCircle.centerX = xTouch;
                         touchedCircle.centerY = yTouch;
                     }
@@ -223,12 +267,18 @@ public class InteractiveCircleView extends View {
         CircleArea touchedCircle = getTouchedCircle(xTouch, yTouch);
 
         if (null == touchedCircle) {
-            touchedCircle = new CircleArea(xTouch, yTouch, mRadiusGenerator.nextInt(RADIUS_LIMIT) + RADIUS_LIMIT);
+            touchedCircle = new CircleArea(xTouch, yTouch, /*mRadiusGenerator.nextInt(RADIUS_LIMIT) +*/ RADIUS_LIMIT);
 
             if (mCircles.size() == CIRCLES_LIMIT) {
                 Log.w(TAG, "Clear all circles, size is " + mCircles.size());
-                // remove first circle
                 mCircles.clear();
+                mEdges.clear();
+            }
+
+            for (CircleArea circle : mCircles) {
+                if (mEdges.size() < EDGES_LIMIT) {
+                    mEdges.add(new EdgeLine(touchedCircle.centerX, touchedCircle.centerY, circle.centerX, circle.centerY));
+                }
             }
 
             Log.w(TAG, "Added circle " + touchedCircle);
@@ -239,7 +289,7 @@ public class InteractiveCircleView extends View {
     }
 
     /**
-     * Determines touched circle
+     * Moves all edges starting or ending on a circle to the designated new location
      *
      * @param xTouch int x touch coordinate
      * @param yTouch int y touch coordinate
@@ -257,6 +307,36 @@ public class InteractiveCircleView extends View {
         }
 
         return touched;
+    }
+
+    private boolean intersectsCircles(final int x, final int y, final CircleArea movingCircle) {
+        for (CircleArea circle : mCircles) {
+            if (circle == movingCircle) continue;
+            if ((circle.centerX - x) * (circle.centerX - x) + (circle.centerY - y) * (circle.centerY - y) < 4 * RADIUS_LIMIT * RADIUS_LIMIT) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Moves all edges starting or ending on a circle to the designated new location
+     *
+     * @param circle CircleArea circle that may have been moved
+     * @param xNew int x new coordinate
+     * @param yNew int y new coordinate
+     *
+     */
+    private void moveTouchingEdges(CircleArea circle, int xNew, int yNew) {
+        for (EdgeLine edge : mEdges) {
+            if (edge.startX == circle.centerX && edge.startY == circle.centerY) {
+                edge.startX = xNew;
+                edge.startY = yNew;
+            } else if (edge.endX == circle.centerX && edge.endY == circle.centerY) {
+                edge.endX = xNew;
+                edge.endY = yNew;
+            }
+        }
     }
 
     @Override

@@ -17,7 +17,7 @@ public class InteractiveCircleView extends View {
 
     private static final String TAG = "InteractiveCircleView";
 
-    // TODO: move logic to Graph class.
+    // TODO: Move these things into the graph class. It should handle how things move around.
     private static final int CIRCLES_LIMIT = 6;
     private SparseIntArray mVertexPointer;
 

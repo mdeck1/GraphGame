@@ -106,7 +106,7 @@ public class InteractiveCircleView extends View {
             case MotionEvent.ACTION_MOVE:
                 final int pointerCount = event.getPointerCount();
 
-                Log.w(TAG, "Move");
+//                Log.w(TAG, "Move");
 
                 for (actionIndex = 0; actionIndex < pointerCount; actionIndex++) {
                     // Some pointer has moved, search it by pointer id
@@ -132,7 +132,7 @@ public class InteractiveCircleView extends View {
             case MotionEvent.ACTION_POINTER_UP:
                 // not general pointer was up
                 pointerId = event.getPointerId(actionIndex);
-                mVertexPointer.remove(pointerId);
+                mVertexPointer.delete(pointerId);
                 invalidate();
                 handled = true;
                 break;

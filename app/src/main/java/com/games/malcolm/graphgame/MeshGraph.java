@@ -14,7 +14,7 @@ import android.util.Log;
 
 public class MeshGraph extends Mesh {
     private static final String TAG = "MeshGraph";
-    private int clearingTouches = 0;
+    private int mClearingTouches = 0;
 
     private int RADIUS = 30;
 
@@ -29,15 +29,15 @@ public class MeshGraph extends Mesh {
     }
 
     public int addGraphVertex(final int x, final int y) {
-        if (vertices.size() == VERTICES_LIMIT) {
+        if (mVertices.size() == VERTICES_LIMIT) {
             Log.i(TAG, "At Vertex Limit. Not adding more.");
-            if (clearingTouches == 2) {
+            if (mClearingTouches == 2) {
                 Log.i(TAG, "Clearing graph.");
                 clear();
-                clearingTouches = 0;
+                mClearingTouches = 0;
             } else {
-                Log.i(TAG, "Incrementing clearingTouches counter.");
-                clearingTouches++;
+                Log.i(TAG, "Incrementing mClearingTouches counter.");
+                mClearingTouches++;
             }
             return -1;
         }
@@ -47,12 +47,12 @@ public class MeshGraph extends Mesh {
         }
         addVertex(x, y);
         Log.i(TAG, "mesh is valid: "  + isValid());
-        return vertices.size() - 1;
+        return mVertices.size() - 1;
     }
 
 
     public float distSq(final Vertex v, final int x, final int y) {
-        return (v.x - x) * (v.x - x) + (v.y - y) * (v.y - y);
+        return (v.mX - x) * (v.mX - x) + (v.mY - y) * (v.mY - y);
     }
 
     public boolean isPointContained(final Vertex v, final int x, final int y) {
@@ -60,8 +60,8 @@ public class MeshGraph extends Mesh {
     }
 
     public int pointOnAnyVertex(final int x, final int y) {
-        for (int i = 0; i < vertices.size(); i++) {
-            if (isPointContained(vertices.get(i), x, y)) {
+        for (int i = 0; i < mVertices.size(); i++) {
+            if (isPointContained(mVertices.get(i), x, y)) {
                 return i;
             }
         }
@@ -70,23 +70,23 @@ public class MeshGraph extends Mesh {
 
     public void moveVertex(final int vertexInd, final int newX, final int newY) {
 //        Log.i(TAG, "moveVertex not implemented.");
-        vertices.get(vertexInd).move(newX, newY);
+        mVertices.get(vertexInd).move(newX, newY);
 //        updateIntersections();
         Log.i(TAG, "mesh is valid: "  + isValid());
     }
 
     public void addEdge(final int startVertexInd, final int endVertexInd) {
-        if (edges.size() == EDGES_LIMIT) {
+        if (mEdges.size() == EDGES_LIMIT) {
             Log.i(TAG, "At Edge Limit. Not adding more.");
             return;
         }
-        Vertex v1 = vertices.get(startVertexInd);
-        Vertex v2 = vertices.get(endVertexInd);
+        Vertex v1 = mVertices.get(startVertexInd);
+        Vertex v2 = mVertices.get(endVertexInd);
         HalfEdge he1 = addHalfEdge(v1, v2, outerFace);
         HalfEdge he2 = addHalfEdge(v2, v1, outerFace);
-        outerFace.he = he1;
-        he1.opposite = he2;
-        he2.opposite = he1;
+        outerFace.mHe = he1;
+        he1.mOpposite = he2;
+        he2.mOpposite = he1;
 //        updateIntersections();
         Log.i(TAG, "mesh is valid: "  + isValid());
     }
@@ -96,15 +96,20 @@ public class MeshGraph extends Mesh {
         Paint ePaint = new Paint();
         ePaint.setColor(Color.CYAN);
         ePaint.setStrokeWidth(10);
-        for (HalfEdge edge : edges) {
-            canv.drawLine(edge.v.x, edge.v.y, edge.opposite.v.x, edge.opposite.v.y, ePaint);
+        for (HalfEdge edge : mEdges) {
+            canv.drawLine(
+                    edge.mVertex.mX,
+                    edge.mVertex.mY,
+                    edge.mOpposite.mVertex.mX,
+                    edge.mOpposite.mVertex.mY,
+                    ePaint);
         }
         Paint vPaint = new Paint();
         vPaint.setColor(Color.RED);
         vPaint.setStrokeWidth(5);
         vPaint.setStyle(Paint.Style.FILL);
-        for (Vertex vertex : vertices) {
-            canv.drawCircle(vertex.x, vertex.y, 30, vPaint);
+        for (Vertex vertex : mVertices) {
+            canv.drawCircle(vertex.mX, vertex.mY, 30, vPaint);
         }
 //        for (Vertex intersection : mVirtualVertices) {
 //            intersection.draw(canv);

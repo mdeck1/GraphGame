@@ -16,88 +16,92 @@ public class Mesh {
     private static final String TAG = "Mesh";
 
     protected class Vertex {
-        public int id;
-        public int x;
-        public int y;
-        public HalfEdge he;
+        public int mId;
+        public int mX;
+        public int mY;
+        public HalfEdge mHe;
 
         Vertex(int x, int y, int id) {
-            this.id = id;
-            this.x = x;
-            this.y = y;
+            mId = id;
+            mX = x;
+            mY = y;
         }
         public void move(int x, int y) {
-            this.x = x;
-            this.y = y;
+            mX = x;
+            mY = y;
         }
         @Override
         public String toString() {
-            String str = "Vertex: [id: " + id +", x: "+ x + ", y: " + y;
-            if (he != null) {
-                str += ", he: "+ he.id;
+            String str = "Vertex: [id: " + mId +", x: "+ mX + ", y: " + mY;
+            if (mHe != null) {
+                str += ", he: "+ mHe.mId;
             }
             str +=  "]";
             return str;
         }
     }
     protected class Face {
-        public int id;
-        public HalfEdge he;
+        public int mId;
+        public HalfEdge mHe;
         Face(int id) {
-            this.id = id;
+            mId = id;
             //this.he = he;
         }
         @Override
         public String toString() {
-            return "Face: [id: " + id +", he: "+ he.id + "]";
+            return "Face: [id: " + mId +", he: "+ mHe.mId + "]";
         }
     }
     protected class HalfEdge {
-        public int id;
-        public Vertex v;
-        public HalfEdge next;
-        public HalfEdge opposite;
-        public Face face;
-        HalfEdge(Vertex v, Face face, int id) {
-            this.id = id;
-            this.v = v;
-            this.face = face;
+        public int mId;
+        public Vertex mVertex;
+        public HalfEdge mNext;
+        public HalfEdge mOpposite;
+        public Face mFace;
+        HalfEdge(Vertex vertex, Face face, int id) {
+            mId = id;
+            mVertex = vertex;
+            mFace = face;
         }
 
         @Override
         public String toString() {
-            String str = "HalfEdge: [id: " + id +", v: "+ v.id + ", opposite: " + opposite.id;
-            if (next != null) {
-                str += ", next: "+ next.id;
+            String str = "HalfEdge: [id: " + mId +", v: "+ mVertex.mId
+                    + ", opposite: " + mOpposite.mId;
+            if (mNext != null) {
+                str += ", next: "+ mNext.mId;
             }
-            if (face != null) {
-                str += ", face: " + face.id;
+            if (mFace != null) {
+                str += ", face: " + mFace.mId;
             }
             str +=  "]";
             return str;
         }
     }
 
-    public ArrayList<HalfEdge> edges;
-    public ArrayList<Vertex> vertices;
-    public ArrayList<Face> faces;
+    public ArrayList<HalfEdge> mEdges;
+    public ArrayList<Vertex> mVertices;
+    public ArrayList<Face> mFaces;
     Mesh() {
         clear();
     }
+
     public Vertex addVertex(int x, int y) {
-        Vertex vertex = new Vertex(x, y, vertices.size());
-        vertices.add(vertex);
+        Vertex vertex = new Vertex(x, y, mVertices.size());
+        mVertices.add(vertex);
         return vertex;
     }
+
     public Face addFace() {
-        Face face = new Face(faces.size());
-        faces.add(face);
+        Face face = new Face(mFaces.size());
+        mFaces.add(face);
         return face;
     }
+
     public HalfEdge addHalfEdge(Vertex from, Vertex to, Face face) {
-        HalfEdge he = new HalfEdge(to, face, edges.size());
-        edges.add(he);
-        from.he = he;
+        HalfEdge he = new HalfEdge(to, face, mEdges.size());
+        mEdges.add(he);
+        from.mHe = he;
         return he;
     }
 
@@ -105,93 +109,93 @@ public class Mesh {
         Face f2 = addFace();
         HalfEdge he1 = addHalfEdge(v1, v2, f1);
         HalfEdge he2 = addHalfEdge(v2, v1, f2);
-        he1.opposite = he2;
-        he2.opposite = he1;
+        he1.mOpposite = he2;
+        he2.mOpposite = he1;
 
         // set next edge for all relevant edges
-        HalfEdge he = f1.he;
+        HalfEdge he = f1.mHe;
         HalfEdge he1_prev = new HalfEdge(null, null, 0);
         HalfEdge he2_prev = new HalfEdge(null, null, 0);
         do {
-            if (he.v == v1) { he1_prev = he; }
-            if (he.v == v2) { he2_prev = he; }
-            if (he.opposite.v == v1) { he2.next = he; }
-            if (he.opposite.v == v2) { he1.next = he; }
-            he = he.next;
-        } while (he != f1.he);
-        he1_prev.next = he1;
-        he2_prev.next = he2;
+            if (he.mVertex == v1) { he1_prev = he; }
+            if (he.mVertex == v2) { he2_prev = he; }
+            if (he.mOpposite.mVertex == v1) { he2.mNext = he; }
+            if (he.mOpposite.mVertex == v2) { he1.mNext = he; }
+            he = he.mNext;
+        } while (he != f1.mHe);
+        he1_prev.mNext = he1;
+        he2_prev.mNext = he2;
 
         // set faces for all edges
-        f1.he = he1;
+        f1.mHe = he1;
         he = he1;
         do {
-            he.face = f1;
-            he = he.next;
-        } while (he != f1.he);
-        f2.he = he2;
+            he.mFace = f1;
+            he = he.mNext;
+        } while (he != f1.mHe);
+        f2.mHe = he2;
         he = he2;
         do {
-            he.face = f2;
-            he = he.next;
-        } while (he != f2.he);
+            he.mFace = f2;
+            he = he.mNext;
+        } while (he != f2.mHe);
         return f2;
     }
 
     public HalfEdge splitEdge(Vertex v1, Vertex v2, Vertex v3) {
         HalfEdge he1 = edgeBetweenVertices(v1, v2);
-        HalfEdge he2 = he1.opposite;
-        HalfEdge he3 = addHalfEdge(v3, v2, he1.face);
-        he1.v = v3;
-        he3.next = he1.next;
-        he1.next = he3;
-        he1.opposite = he3;
-        he3.opposite = he1;
-        HalfEdge he4 = addHalfEdge(v3, v1, he2.face);
-        he2.v = v3;
-        he4.next = he2.next;
-        he2.next = he4;
-        he2.opposite = he4;
-        he4.opposite = he2;
+        HalfEdge he2 = he1.mOpposite;
+        HalfEdge he3 = addHalfEdge(v3, v2, he1.mFace);
+        he1.mVertex = v3;
+        he3.mNext = he1.mNext;
+        he1.mNext = he3;
+        he1.mOpposite = he3;
+        he3.mOpposite = he1;
+        HalfEdge he4 = addHalfEdge(v3, v1, he2.mFace);
+        he2.mVertex = v3;
+        he4.mNext = he2.mNext;
+        he2.mNext = he4;
+        he2.mOpposite = he4;
+        he4.mOpposite = he2;
         return he3;
     }
 
     public HalfEdge edgeBetweenVertices(Vertex v1, Vertex v2) {
-        HalfEdge he = v1.he;
-        while (he.v != v2) {
-            he = he.opposite.next;
+        HalfEdge he = v1.mHe;
+        while (he.mVertex != v2) {
+            he = he.mOpposite.mNext;
         }
         return he;
     }
 
     public void clear() {
-        edges = new ArrayList<>();
-        vertices = new ArrayList<>();
-        faces = new ArrayList<>();
+        mEdges = new ArrayList<>();
+        mVertices = new ArrayList<>();
+        mFaces = new ArrayList<>();
     }
 
     public boolean isValid() {
         Log.i(TAG, "validating");
         boolean validVertices = true;
-        Log.i(TAG, "number of vertices: " + vertices.size());
-        for (Vertex v : vertices) {
-            if (v.he != null) { // possible for isolated vertex
-                boolean vertexValid = v.he.opposite.v == v;
+        Log.i(TAG, "number of vertices: " + mVertices.size());
+        for (Vertex vertex : mVertices) {
+            if (vertex.mHe != null) { // possible for isolated vertex
+                boolean vertexValid = vertex.mHe.mOpposite.mVertex == vertex;
                 validVertices &= vertexValid;
             }
         }
         Log.i(TAG, "vertices valid: " + validVertices);
         boolean validEdges = true;
-        Log.i(TAG, "number of halfedges: " + edges.size());
-        for (HalfEdge he : edges) {
-            validEdges &= he.opposite.opposite == he;
-            validEdges &= he.face != null;
+        Log.i(TAG, "number of halfedges: " + mEdges.size());
+        for (HalfEdge he : mEdges) {
+            validEdges &= he.mOpposite.mOpposite == he;
+            validEdges &= he.mFace != null;
         }
         Log.i(TAG, "halfedges valid: " + validEdges);
         boolean validFaces = true;
-        Log.i(TAG, "number of faces: " + faces.size());
-        for (Face f : faces) {
-            validFaces &= f.he.face == f;
+        Log.i(TAG, "number of faces: " + mFaces.size());
+        for (Face face : mFaces) {
+            validFaces &= face.mHe.mFace == face;
         }
         boolean isValid = validVertices && validEdges & validFaces;
         if (!isValid) {
@@ -202,21 +206,21 @@ public class Mesh {
     @Override
     public String toString() {
         String str = "Mesh: [vertices: [";
-        for (Vertex v: vertices) {
-            str += "\n" + v;
+        for (Vertex vertex : mVertices) {
+            str += "\n" + vertex;
         }
         str += "]\n";
-        if (!edges.isEmpty()) {
+        if (!mEdges.isEmpty()) {
             str += "edges: [";
-            for (HalfEdge he: edges) {
+            for (HalfEdge he: mEdges) {
                 str += "\n" + he;
             }
             str += "]\n";
         }
-        if (!faces.isEmpty()) {
+        if (!mFaces.isEmpty()) {
             str += "faces: [";
-            for (Face f: faces) {
-                str += "\n" + f;
+            for (Face face : mFaces) {
+                str += "\n" + face;
             }
             str += "]\n";
         }

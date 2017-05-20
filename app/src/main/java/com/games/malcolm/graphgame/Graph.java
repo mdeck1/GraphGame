@@ -19,95 +19,95 @@ public class Graph {
 
 //    private final static int VERTEX_RADIUS = 30;
 //    private final static int EDGE_WIDTH = 10;
-    private int clearingTouches = 3;
+    private int mClearingTouches = 3;
 
     private static final String TAG = "Graph";
 
 
     private static class Vertex {
 
-        private int RADIUS = 30;
+        private int mRadius = 30;
 
-        float x;
-        float y;
-        private Paint paint;
+        float mX;
+        float mY;
+        private Paint mPaint;
 
         Vertex(float x, float y) {
-            this.x = x;
-            this.y = y;
+            mX = x;
+            mY = y;
             initPaint();
         }
 
         Vertex(float x, float y, int radius, Paint paint) {
             this(x, y);
-            this.paint = paint;
-            this.RADIUS = radius;
+            mPaint = paint;
+            mRadius = radius;
         }
 
         private void initPaint() {
-            paint = new Paint();
-            paint.setColor(Color.RED);
-            paint.setStrokeWidth(5);
-            paint.setStyle(Paint.Style.FILL);
+            mPaint = new Paint();
+            mPaint.setColor(Color.RED);
+            mPaint.setStrokeWidth(5);
+            mPaint.setStyle(Paint.Style.FILL);
         }
 
         public void move(int newX, int newY) {
-            this.x = newX;
-            this.y = newY;
+            mX = newX;
+            mY = newY;
         }
 
         public void draw(final Canvas canv) {
-            canv.drawCircle(x, y, RADIUS, paint);
+            canv.drawCircle(mX, mY, mRadius, mPaint);
         }
 
         public float distSq(final int x, final int y) {
-            return (this.x - x) * (this.x - x) + (this.y - y) * (this.y - y);
+            return (mX - x) * (mX - x) + (mY - y) * (mY - y);
         }
 
         public boolean isPointContained(final int x, final int y) {
-            return distSq(x, y) <= RADIUS * RADIUS;
+            return distSq(x, y) <= mRadius * mRadius;
         }
 
         @Override
         public String toString() {
-            return "Vertex[" + x + ", " + y + "]";
+            return "Vertex[" + mX + ", " + mY + "]";
         }
     }
 
     private static class Edge {
-        Vertex startVertex;
-        Vertex endVertex;
-        private Paint paint;
+        Vertex mStartVertex;
+        Vertex mEndVertex;
+        private Paint mPaint;
 
         Edge(Vertex startVertex, Vertex endVertex) {
-            this.startVertex = startVertex;
-            this.endVertex = endVertex;
+            mStartVertex = startVertex;
+            mEndVertex = endVertex;
             initPaint();
         }
 
         private void initPaint() {
-            paint = new Paint();
-            paint.setColor(Color.CYAN);
-            paint.setStrokeWidth(10);
+            mPaint = new Paint();
+            mPaint.setColor(Color.CYAN);
+            mPaint.setStrokeWidth(10);
         }
 
         public void draw(final Canvas canv) {
-            canv.drawLine(startVertex.x, startVertex.y, endVertex.x, endVertex.y, paint);
+            canv.drawLine(mStartVertex.mX, mStartVertex.mY, mEndVertex.mX, mEndVertex.mY, mPaint);
         }
 
         private float slope() {
-            float deltaX = startVertex.x - endVertex.x;
-            float deltaY = startVertex.y - endVertex.y;
-            return deltaY/deltaX;
+            float deltaX = mStartVertex.mX - mEndVertex.mX;
+            float deltaY = mStartVertex.mY - mEndVertex.mY;
+            return deltaY / deltaX;
         }
 
         private float shift() {
-            return startVertex.y - startVertex.x * slope();
+            return mStartVertex.mY - mStartVertex.mX * slope();
         }
 
         private boolean containsVertex(Vertex vertex) {
-            return vertex.x > Math.min(startVertex.x, endVertex.x) && vertex.x < Math.max(startVertex.x, endVertex.x)
-                    && vertex.y > Math.min(startVertex.y, endVertex.y) && vertex.y < Math.max(startVertex.y, endVertex.y);
+            return vertex.mX > Math.min(mStartVertex.mX, mEndVertex.mX) && vertex.mX < Math.max(mStartVertex.mX, mEndVertex.mX)
+                    && vertex.mY > Math.min(mStartVertex.mY, mEndVertex.mY) && vertex.mY < Math.max(mStartVertex.mY, mEndVertex.mY);
         }
 
         public Vertex intersect(Edge edge) {
@@ -129,15 +129,15 @@ public class Graph {
 
         @Override
         public String toString() {
-            return "Edge[" + startVertex + ", " + endVertex +"]";
+            return "Edge[" + mStartVertex + ", " + mEndVertex +"]";
         }
     }
 
     private static class Face {
-        private boolean isOuterFace; // There can only be one per Graph
-        private ArrayList<Vertex> vertices;
-        private Path facePath;
-        private Paint paint;
+        private boolean mIsOuterFace; // There can only be one per Graph
+        private ArrayList<Vertex> mVertices;
+        private Path mFacePath;
+        private Paint mPaint;
 
         Face(boolean isOuterFace) {
             this(isOuterFace, new ArrayList<Vertex>());
@@ -148,44 +148,44 @@ public class Graph {
         }
 
         Face(boolean isOuterFace, ArrayList<Vertex> vertices) {
-            this.isOuterFace = isOuterFace;
-            this.vertices = vertices;
+            mIsOuterFace = isOuterFace;
+            mVertices = vertices;
             initPaint();
         }
 
         private void initPaint() {
-            paint = new Paint();
-            paint.setColor(Color.GRAY);
-            paint.setStyle(Paint.Style.FILL);
+            mPaint = new Paint();
+            mPaint.setColor(Color.GRAY);
+            mPaint.setStyle(Paint.Style.FILL);
         }
 
         public void addVertex(Vertex vertex) {
-            vertices.add(vertex);
+            mVertices.add(vertex);
         }
 
         public void draw(final Canvas canv) {
             Path path = new Path();
-            if (vertices.size() > 0) {
-                Vertex lastVertex = vertices.get(vertices.size() - 1);
-                path.moveTo(lastVertex.x, lastVertex.y);
-                for (Vertex vertex : vertices) {
-                    path.lineTo(vertex.x, vertex.y);
+            if (mVertices.size() > 0) {
+                Vertex lastVertex = mVertices.get(mVertices.size() - 1);
+                path.moveTo(lastVertex.mX, lastVertex.mY);
+                for (Vertex vertex : mVertices) {
+                    path.lineTo(vertex.mX, vertex.mY);
                 }
             }
-            if (isOuterFace) {
-                if (vertices.size() < 3) {
-                    canv.drawRect(0, 0, canv.getWidth(), canv.getHeight(), paint);
+            if (mIsOuterFace) {
+                if (mVertices.size() < 3) {
+                    canv.drawRect(0, 0, canv.getWidth(), canv.getHeight(), mPaint);
                 } else {
                     path.toggleInverseFillType();
                     RectF bounds = new RectF();
                     path.computeBounds(bounds, true);
-                    canv.drawRect(0, bounds.bottom, canv.getWidth(), canv.getHeight(), paint);
-                    canv.drawRect(0, bounds.top, bounds.left, bounds.bottom, paint);
-                    canv.drawRect(0, 0, canv.getWidth(), bounds.top, paint);
-                    canv.drawRect(bounds.right, bounds.top, canv.getWidth(), bounds.bottom, paint);
+                    canv.drawRect(0, bounds.bottom, canv.getWidth(), canv.getHeight(), mPaint);
+                    canv.drawRect(0, bounds.top, bounds.left, bounds.bottom, mPaint);
+                    canv.drawRect(0, 0, canv.getWidth(), bounds.top, mPaint);
+                    canv.drawRect(bounds.right, bounds.top, canv.getWidth(), bounds.bottom, mPaint);
                 }
             }
-            canv.drawPath(path, paint);
+            canv.drawPath(path, mPaint);
         }
     }
 
@@ -209,13 +209,13 @@ public class Graph {
     public int addGraphVertex(final int x, final int y) {
         if (mVertices.size() == VERTICES_LIMIT) {
             Log.i(TAG, "At Vertex Limit. Not adding more.");
-            if (clearingTouches == 2) {
+            if (mClearingTouches == 2) {
                 Log.i(TAG, "Clearing graph.");
                 clear();
-                clearingTouches = 0;
+                mClearingTouches = 0;
             } else {
-                Log.i(TAG, "Incrementing clearingTouches counter.");
-                clearingTouches++;
+                Log.i(TAG, "Incrementing mClearingTouches counter.");
+                mClearingTouches++;
             }
             return -1;
         }

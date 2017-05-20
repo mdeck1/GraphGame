@@ -21,7 +21,7 @@ public class InteractiveCircleView extends View {
     private static final int CIRCLES_LIMIT = 6;
     private SparseIntArray mVertexPointer;
 
-    private Graph graph;
+    private MeshGraph graph;
 
     /**
      * Default constructor
@@ -30,18 +30,18 @@ public class InteractiveCircleView extends View {
      */
     public InteractiveCircleView(final Context ct) {
         super(ct);
-        graph = new Graph();
+        graph = new MeshGraph();
         mVertexPointer = new SparseIntArray(CIRCLES_LIMIT);
     }
     public InteractiveCircleView(final Context ct, final AttributeSet attrs) {
         super(ct, attrs);
-        graph = new Graph();
+        graph = new MeshGraph();
         mVertexPointer = new SparseIntArray(CIRCLES_LIMIT);
     }
 
     public InteractiveCircleView(final Context ct, final AttributeSet attrs, final int defStyle) {
         super(ct, attrs, defStyle);
-        graph = new Graph();
+        graph = new MeshGraph();
         mVertexPointer = new SparseIntArray(CIRCLES_LIMIT);
     }
 
@@ -72,7 +72,7 @@ public class InteractiveCircleView extends View {
                 if (touchedVertex > -1) {
                     mVertexPointer.put(event.getPointerId(0), touchedVertex);
                 } else {
-                    int newVertInd = graph.addVertex(xTouch, yTouch);
+                    int newVertInd = graph.addGraphVertex(xTouch, yTouch);
                     for (int i = 0; i < newVertInd; i++) {
                         graph.addEdge(i, newVertInd);
                     }
@@ -94,7 +94,7 @@ public class InteractiveCircleView extends View {
                 if (touchedVertex > -1) {
                     mVertexPointer.put(event.getPointerId(pointerId), touchedVertex);
                 } else {
-                    int newVertInd = graph.addVertex(xTouch, yTouch);
+                    int newVertInd = graph.addGraphVertex(xTouch, yTouch);
                     for (int i = 0; i < newVertInd; i++) {
                         graph.addEdge(i, newVertInd);
                     }

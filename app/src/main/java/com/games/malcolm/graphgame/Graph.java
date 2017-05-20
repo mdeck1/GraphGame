@@ -206,7 +206,7 @@ public class Graph {
         outerFace = new Face(true);
     }
 
-    public int addVertex(final int x, final int y) {
+    public int addGraphVertex(final int x, final int y) {
         if (mVertices.size() == VERTICES_LIMIT) {
             Log.i(TAG, "At Vertex Limit. Not adding more.");
             if (clearingTouches == 2) {
@@ -266,7 +266,7 @@ public class Graph {
         }
     }
 
-    public void updateIntersections() {
+    private void updateIntersections() {
         mVirtualVertices.clear();
         for (int i = 0; i < mEdges.size(); i++){
             for (int j = i + 1; j < mEdges.size(); j++) {

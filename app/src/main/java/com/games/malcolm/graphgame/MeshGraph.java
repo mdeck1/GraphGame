@@ -16,16 +16,16 @@ public class MeshGraph extends Mesh {
     private static final String TAG = "MeshGraph";
     private int mClearingTouches = 0;
 
-    private int RADIUS = 30;
+    private int mRadius = 30;
 
     private static final int VERTICES_LIMIT = 5;
     private static final int EDGES_LIMIT = 9; // with |V| = 5, |E|=10 is K5, so limit to 9
 
-    private Face outerFace;
+    private Face mOuterFace;
 
     MeshGraph() {
         super();
-        outerFace = new Face(-1);
+        mOuterFace = new Face(-1);
     }
 
     public int addGraphVertex(final int x, final int y) {
@@ -56,7 +56,7 @@ public class MeshGraph extends Mesh {
     }
 
     public boolean isPointContained(final Vertex v, final int x, final int y) {
-        return distSq(v, x, y) <= RADIUS * RADIUS;
+        return distSq(v, x, y) <= mRadius * mRadius;
     }
 
     public int pointOnAnyVertex(final int x, final int y) {
@@ -82,9 +82,9 @@ public class MeshGraph extends Mesh {
         }
         Vertex v1 = mVertices.get(startVertexInd);
         Vertex v2 = mVertices.get(endVertexInd);
-        HalfEdge he1 = addHalfEdge(v1, v2, outerFace);
-        HalfEdge he2 = addHalfEdge(v2, v1, outerFace);
-        outerFace.mHe = he1;
+        HalfEdge he1 = addHalfEdge(v1, v2, mOuterFace);
+        HalfEdge he2 = addHalfEdge(v2, v1, mOuterFace);
+        mOuterFace.mHe = he1;
         he1.mOpposite = he2;
         he2.mOpposite = he1;
 //        updateIntersections();
@@ -92,7 +92,7 @@ public class MeshGraph extends Mesh {
     }
 
     public void draw(final Canvas canv) {
-//        outerFace.draw(canv);
+//        mOuterFace.draw(canv);
         Paint ePaint = new Paint();
         ePaint.setColor(Color.CYAN);
         ePaint.setStrokeWidth(10);

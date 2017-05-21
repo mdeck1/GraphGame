@@ -104,6 +104,7 @@ public class InteractiveCircleView extends View {
                 break;
 
             case MotionEvent.ACTION_MOVE:
+                /*
                 final int pointerCount = event.getPointerCount();
 
 //                Log.w(TAG, "Move");
@@ -122,6 +123,7 @@ public class InteractiveCircleView extends View {
                 invalidate();
                 handled = true;
                 break;
+                */
 
             case MotionEvent.ACTION_UP:
                 clearCirclePointer();

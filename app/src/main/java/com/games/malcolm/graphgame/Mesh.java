@@ -168,6 +168,28 @@ public class Mesh {
         return he;
     }
 
+    public ArrayList<Vertex> getNeighbors(Vertex v) {
+        ArrayList<Vertex> neighbors = new ArrayList<>();
+        HalfEdge he = v.mHe;
+        do {
+            neighbors.add(he.mVertex);
+            he = he.mOpposite.mNext;
+        } while (he.mId != v.mHe.mId);
+        return neighbors;
+    }
+
+    public ArrayList<HalfEdge> getOutEdges(Vertex v) {
+        ArrayList<HalfEdge> edges = new ArrayList<>();
+        HalfEdge he = v.mHe;
+        if (he == null) { return edges; }
+        do {
+//            Log.i(TAG, he.toString());
+            edges.add(he);
+            he = he.mOpposite.mNext;
+        } while (he.mId != v.mHe.mId);
+        return edges;
+    }
+
     public void clear() {
         mEdges = new ArrayList<>();
         mVertices = new ArrayList<>();
@@ -188,14 +210,24 @@ public class Mesh {
         boolean validEdges = true;
         Log.i(TAG, "number of halfedges: " + mEdges.size());
         for (HalfEdge he : mEdges) {
-            validEdges &= he.mOpposite.mOpposite == he;
-            validEdges &= he.mFace != null;
+            validEdges &= he.mOpposite.mOpposite == he; // opposite exists and is valid
+            validEdges &= he.mFace != null; // face exists
+            HalfEdge nHe = he.mNext;
+            for (int i = 0; i < mEdges.size(); i++) { // Next circles back to original edge
+                if (nHe.mId == he.mId) { break; }
+                nHe = nHe.mNext;
+                if (i == mEdges.size() - 1) { validEdges = false; }
+            }
         }
         Log.i(TAG, "halfedges valid: " + validEdges);
         boolean validFaces = true;
         Log.i(TAG, "number of faces: " + mFaces.size());
         for (Face face : mFaces) {
-            validFaces &= face.mHe.mFace == face;
+            HalfEdge nHe = face.mHe;
+            do {
+                validFaces &= nHe.mFace == face;
+                nHe = nHe.mNext;
+            } while (nHe.mId == face.mHe.mId);
         }
         boolean isValid = validVertices && validEdges & validFaces;
         if (!isValid) {

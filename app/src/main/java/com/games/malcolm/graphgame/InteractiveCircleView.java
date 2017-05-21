@@ -73,9 +73,12 @@ public class InteractiveCircleView extends View {
                     mVertexPointer.put(event.getPointerId(0), touchedVertex);
                 } else {
                     int newVertInd = graph.addGraphVertex(xTouch, yTouch);
-                    for (int i = 0; i < newVertInd; i++) {
-                        graph.addEdge(i, newVertInd);
+                    if (newVertInd > 0) {
+                        graph.addEdge(0, newVertInd);
                     }
+//                    for (int i = 0; i < newVertInd; i++) {
+//                        graph.addEdge(i, newVertInd);
+//                    }
                 }
 
                 invalidate();
@@ -95,33 +98,36 @@ public class InteractiveCircleView extends View {
                     mVertexPointer.put(event.getPointerId(pointerId), touchedVertex);
                 } else {
                     int newVertInd = graph.addGraphVertex(xTouch, yTouch);
-                    for (int i = 0; i < newVertInd; i++) {
-                        graph.addEdge(i, newVertInd);
+                    if (newVertInd > 0) {
+                        graph.addEdge(0, newVertInd);
                     }
+//                    for (int i = 0; i < newVertInd; i++) {
+//                        graph.addEdge(i, newVertInd);
+//                    }
                 }
                 invalidate();
                 handled = true;
                 break;
 
             case MotionEvent.ACTION_MOVE:
-                final int pointerCount = event.getPointerCount();
-
-//                Log.w(TAG, "Move");
-
-                for (actionIndex = 0; actionIndex < pointerCount; actionIndex++) {
-                    // Some pointer has moved, search it by pointer id
-                    pointerId = event.getPointerId(actionIndex);
-
-                    xTouch = (int) event.getX(actionIndex);
-                    yTouch = (int) event.getY(actionIndex);
-                    Integer touchedVertexInd = mVertexPointer.get(pointerId);
-                    if (touchedVertexInd != null) {
-                        graph.moveVertex(touchedVertexInd, xTouch, yTouch);
-                    }
-                }
-                invalidate();
-                handled = true;
-                break;
+//                final int pointerCount = event.getPointerCount();
+//
+////                Log.w(TAG, "Move");
+//
+//                for (actionIndex = 0; actionIndex < pointerCount; actionIndex++) {
+//                    // Some pointer has moved, search it by pointer id
+//                    pointerId = event.getPointerId(actionIndex);
+//
+//                    xTouch = (int) event.getX(actionIndex);
+//                    yTouch = (int) event.getY(actionIndex);
+//                    Integer touchedVertexInd = mVertexPointer.get(pointerId);
+//                    if (touchedVertexInd != null) {
+//                        graph.moveVertex(touchedVertexInd, xTouch, yTouch);
+//                    }
+//                }
+//                invalidate();
+//                handled = true;
+//                break;
 
             case MotionEvent.ACTION_UP:
                 clearCirclePointer();

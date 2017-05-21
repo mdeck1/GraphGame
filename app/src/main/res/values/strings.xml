@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Graph Game</string>
-    <string name="button_text">Click me!</string>
+    <string name="button_signin">Sign In</string>
+    <string name="button_next_level">Play Next Level</string>
+    <string name="button_select_level">Select Level</string>
+    <string name="button_edit_level">Level Editor</string>
 </resources>

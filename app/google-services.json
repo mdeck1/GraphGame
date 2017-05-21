@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "32651194172",
+    "firebase_url": "https://graphgame-f8e5c.firebaseio.com",
+    "project_id": "graphgame-f8e5c",
+    "storage_bucket": "graphgame-f8e5c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:32651194172:android:eb0edc35a0c712de",
+        "android_client_info": {
+          "package_name": "com.games.malcolm.graphgame"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "32651194172-aah8sqv3s9tnjag85ivmm2eeo6mpjpqr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.games.malcolm.graphgame",
+            "certificate_hash": "6989159740750d7d1a226be31b3906c4ac6d9092"
+          }
+        },
+        {
+          "client_id": "32651194172-1j98i2nvl0d0fg3ocs193ana02htj9m8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDhVPRdqbqNK3Ih4e1g5nTSg5CgZKrwwFo"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "32651194172-1j98i2nvl0d0fg3ocs193ana02htj9m8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

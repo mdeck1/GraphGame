@@ -2,16 +2,29 @@ package com.games.malcolm.graphgame;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class LevelEditorActivity extends AppCompatActivity {
 
     private static String TAG = "LevelEditorActivity";
 
     private InteractiveCircleView mInteractiveCircleView;
+
+    private Button mClearButton;
+    private Button mSaveLevelButton;
+    private EditText mLevelName;
+
+    private FirebaseDatabase mDatabase;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,14 +35,42 @@ public class LevelEditorActivity extends AppCompatActivity {
 
         mInteractiveCircleView = (InteractiveCircleView) findViewById(R.id.drawing_canvas);
 
-        /*mButton = (Button) findViewById(R.id.click_button);
+        mClearButton = (Button) findViewById(R.id.button_clear);
+        mSaveLevelButton = (Button) findViewById(R.id.button_save_level);
+        mLevelName = (EditText) findViewById(R.id.text_level_name);
 
-        mButton.setOnClickListener(new View.OnClickListener() {
+        mDatabase = FirebaseDatabase.getInstance();
+        mAuth = FirebaseAuth.getInstance();
+
+        mClearButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                Log.i(TAG, "BUTTON WAS CLICKED");
-                Toast.makeText(getApplicationContext(), "Yay!", Toast.LENGTH_LONG).show();
+            public void onClick(View view) {
+                mInteractiveCircleView.clear();
             }
-        });*/
+        });
+
+        mSaveLevelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String levelName = mLevelName.getText().toString();
+                if (TextUtils.isEmpty(levelName)) {
+                    Toast.makeText(
+                            LevelEditorActivity.this,
+                            "You must enter a name to save a level.",
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                } else if (mAuth.getCurrentUser() == null) {
+                    Toast.makeText(
+                            LevelEditorActivity.this,
+                            "You must be logged-in to save your level!",
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                DatabaseReference ref = mDatabase.getReference();
+                ref.child(mAuth.getCurrentUser().getUid()).child("levels")
+                        .child(levelName).setValue(true);
+            }
+        });
     }
 }

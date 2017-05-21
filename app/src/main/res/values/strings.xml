@@ -5,4 +5,7 @@
     <string name="button_next_level">Play Next Level</string>
     <string name="button_select_level">Select Level</string>
     <string name="button_edit_level">Level Editor</string>
+    <string name="button_clear">Clear Graph</string>
+    <string name="button_save_level">Save Level</string>
+    <string name="hint_level_name">Level Name Here!</string>
 </resources>

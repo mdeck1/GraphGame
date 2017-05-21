@@ -21,7 +21,7 @@ public class InteractiveCircleView extends View {
     private static final int CIRCLES_LIMIT = 6;
     private SparseIntArray mVertexPointer;
 
-    private MeshGraph graph;
+    private MeshGraph mGraph;
 
     /**
      * Default constructor
@@ -30,24 +30,24 @@ public class InteractiveCircleView extends View {
      */
     public InteractiveCircleView(final Context ct) {
         super(ct);
-        graph = new MeshGraph();
+        mGraph = new MeshGraph();
         mVertexPointer = new SparseIntArray(CIRCLES_LIMIT);
     }
     public InteractiveCircleView(final Context ct, final AttributeSet attrs) {
         super(ct, attrs);
-        graph = new MeshGraph();
+        mGraph = new MeshGraph();
         mVertexPointer = new SparseIntArray(CIRCLES_LIMIT);
     }
 
     public InteractiveCircleView(final Context ct, final AttributeSet attrs, final int defStyle) {
         super(ct, attrs, defStyle);
-        graph = new MeshGraph();
+        mGraph = new MeshGraph();
         mVertexPointer = new SparseIntArray(CIRCLES_LIMIT);
     }
 
     @Override
     public void onDraw(final Canvas canv) {
-        graph.draw(canv);
+        mGraph.draw(canv);
     }
 
     @Override
@@ -68,17 +68,14 @@ public class InteractiveCircleView extends View {
 
                 xTouch = (int) event.getX(0);
                 yTouch = (int) event.getY(0);
-                touchedVertex = graph.pointOnAnyVertex(xTouch, yTouch);
+                touchedVertex = mGraph.pointOnAnyVertex(xTouch, yTouch);
                 if (touchedVertex > -1) {
                     mVertexPointer.put(event.getPointerId(0), touchedVertex);
                 } else {
-                    int newVertInd = graph.addGraphVertex(xTouch, yTouch);
-                    if (newVertInd > 0) {
-                        graph.addEdge(0, newVertInd);
+                    int newVertInd = mGraph.addGraphVertex(xTouch, yTouch);
+                    for (int i = 0; i < newVertInd; i++) {
+                        mGraph.addEdge(i, newVertInd);
                     }
-//                    for (int i = 0; i < newVertInd; i++) {
-//                        graph.addEdge(i, newVertInd);
-//                    }
                 }
 
                 invalidate();
@@ -93,41 +90,38 @@ public class InteractiveCircleView extends View {
                 xTouch = (int) event.getX(actionIndex);
                 yTouch = (int) event.getY(actionIndex);
 
-                touchedVertex = graph.pointOnAnyVertex(xTouch, yTouch);
+                touchedVertex = mGraph.pointOnAnyVertex(xTouch, yTouch);
                 if (touchedVertex > -1) {
                     mVertexPointer.put(event.getPointerId(pointerId), touchedVertex);
                 } else {
-                    int newVertInd = graph.addGraphVertex(xTouch, yTouch);
-                    if (newVertInd > 0) {
-                        graph.addEdge(0, newVertInd);
+                    int newVertInd = mGraph.addGraphVertex(xTouch, yTouch);
+                    for (int i = 0; i < newVertInd; i++) {
+                        mGraph.addEdge(i, newVertInd);
                     }
-//                    for (int i = 0; i < newVertInd; i++) {
-//                        graph.addEdge(i, newVertInd);
-//                    }
                 }
                 invalidate();
                 handled = true;
                 break;
 
             case MotionEvent.ACTION_MOVE:
-//                final int pointerCount = event.getPointerCount();
-//
-////                Log.w(TAG, "Move");
-//
-//                for (actionIndex = 0; actionIndex < pointerCount; actionIndex++) {
-//                    // Some pointer has moved, search it by pointer id
-//                    pointerId = event.getPointerId(actionIndex);
-//
-//                    xTouch = (int) event.getX(actionIndex);
-//                    yTouch = (int) event.getY(actionIndex);
-//                    Integer touchedVertexInd = mVertexPointer.get(pointerId);
-//                    if (touchedVertexInd != null) {
-//                        graph.moveVertex(touchedVertexInd, xTouch, yTouch);
-//                    }
-//                }
-//                invalidate();
-//                handled = true;
-//                break;
+                final int pointerCount = event.getPointerCount();
+
+//                Log.w(TAG, "Move");
+
+                for (actionIndex = 0; actionIndex < pointerCount; actionIndex++) {
+                    // Some pointer has moved, search it by pointer id
+                    pointerId = event.getPointerId(actionIndex);
+
+                    xTouch = (int) event.getX(actionIndex);
+                    yTouch = (int) event.getY(actionIndex);
+                    Integer touchedVertexInd = mVertexPointer.get(pointerId);
+                    if (touchedVertexInd != null) {
+                        mGraph.moveVertex(touchedVertexInd, xTouch, yTouch);
+                    }
+                }
+                invalidate();
+                handled = true;
+                break;
 
             case MotionEvent.ACTION_UP:
                 clearCirclePointer();
@@ -165,5 +159,10 @@ public class InteractiveCircleView extends View {
     @Override
     protected void onMeasure(final int widthMeasureSpec, final int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }
+
+    public void clear() {
+        mGraph.clear();
+        invalidate();
     }
 }

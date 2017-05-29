@@ -68,13 +68,16 @@ public class InteractiveCircleView extends View {
 
                 xTouch = (int) event.getX(0);
                 yTouch = (int) event.getY(0);
-                touchedVertex = mGraph.pointOnAnyVertex(xTouch, yTouch);
+                touchedVertex = mGraph.pointOnAnyVertex(new Point(xTouch, yTouch));
                 if (touchedVertex > -1) {
                     mVertexPointer.put(event.getPointerId(0), touchedVertex);
                 } else {
                     int newVertInd = mGraph.addGraphVertex(xTouch, yTouch);
+//                    if (newVertInd > 0) {
+//                        mGraph.addGraphEdge(0, newVertInd);
+//                    }
                     for (int i = 0; i < newVertInd; i++) {
-                        mGraph.addEdge(i, newVertInd);
+                        mGraph.addGraphEdge(i, newVertInd);
                     }
                 }
 
@@ -90,13 +93,16 @@ public class InteractiveCircleView extends View {
                 xTouch = (int) event.getX(actionIndex);
                 yTouch = (int) event.getY(actionIndex);
 
-                touchedVertex = mGraph.pointOnAnyVertex(xTouch, yTouch);
+                touchedVertex = mGraph.pointOnAnyVertex(new Point(xTouch, yTouch));
                 if (touchedVertex > -1) {
                     mVertexPointer.put(event.getPointerId(pointerId), touchedVertex);
                 } else {
                     int newVertInd = mGraph.addGraphVertex(xTouch, yTouch);
+//                    if (newVertInd > 0) {
+//                        mGraph.addGraphEdge(0, newVertInd);
+//                    }
                     for (int i = 0; i < newVertInd; i++) {
-                        mGraph.addEdge(i, newVertInd);
+                        mGraph.addGraphEdge(i, newVertInd);
                     }
                 }
                 invalidate();
@@ -154,7 +160,7 @@ public class InteractiveCircleView extends View {
      * Clears all Vertex - pointer id relations
      */
     private void clearCirclePointer() {
-        Log.w(TAG, "clearVertexPointer");
+//        Log.w(TAG, "clearVertexPointer");
         mVertexPointer.clear();
     }
 

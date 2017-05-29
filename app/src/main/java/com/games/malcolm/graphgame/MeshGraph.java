@@ -3,10 +3,16 @@ package com.games.malcolm.graphgame;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.PointF;
+import android.graphics.Path;
+import android.graphics.RectF;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by Thomas on 3/17/17.
@@ -17,140 +23,242 @@ import java.util.ArrayList;
 
 public class MeshGraph extends Mesh {
     private static final String TAG = "MeshGraph";
-    private int mClearingTouches = 0;
 
     private int mRadius = 30;
 
     private static final int VERTICES_LIMIT = 5;
-    private static final int EDGES_LIMIT = 9; // with |V| = 5, |E|=10 is K5, so limit to 9
+    private static final int EDGES_LIMIT = 10; // with |V| = 5, |E|=10 is K5, so limit to 9
 
-    private Face mOuterFace;
+    private ArrayList<Point> mIntersections;
 
-    MeshGraph() {
-        super();
-        mOuterFace = new Face(-1);
+    private class GraphEdge {
+        Vertex mV1;
+        Vertex mV2;
+        GraphEdge(Vertex v1, Vertex v2) {
+            mV1 = v1;
+            mV2 = v2;
+        }
+        @Override
+        public String toString() {
+            return "GraphEdge: [v1: " + mV1.mId + ", v2: " + mV2.mId + "]";
+        }
     }
 
+    private class Intersection {
+        Point mP; // intersection point
+        HalfEdge mHe;
+        Intersection(Point intersection, HalfEdge he) {
+            mP = intersection;
+            mHe = he;
+        }
+    }
+
+
+    private static class OrderByDistance implements Comparator<Intersection> {
+        Point mOrigin;
+        OrderByDistance(Point p) {
+            mOrigin = p;
+        }
+        @Override
+        public int compare(Intersection p1, Intersection p2) {
+            Point v1 = p1.mP.copyMinus(mOrigin);
+            Point v2 = p2.mP.copyMinus(mOrigin);
+            return Float.compare(v1.dot(v1), v2.dot(v2));
+        }
+    }
+
+    ArrayList<GraphEdge> mGraphEdges;
+    ArrayList<Vertex> mGraphVertices;
+
+    MeshGraph() {
+        clear();
+    }
+
+    // TODO: API currently allows for isolated vertices
     public int addGraphVertex(final int x, final int y) {
-        if (mVertices.size() == VERTICES_LIMIT) {
-            Log.i(TAG, "At Vertex Limit. Not adding more.");
-            if (mClearingTouches == 2) {
-                Log.i(TAG, "Clearing graph.");
-                clear();
-                mClearingTouches = 0;
-            } else {
-                Log.i(TAG, "Incrementing mClearingTouches counter.");
-                mClearingTouches++;
-            }
+        validate();
+        if (mGraphVertices.size() >= VERTICES_LIMIT) {
             return -1;
         }
-        if (pointOnAnyVertex(x, y) >= 0) {
+        Point p = new Point(x, y);
+        if (pointOnAnyVertex(p) >= 0) {
             Log.i(TAG, "Point already contained in Vertex. Not adding Vertex");
             return -1;
         }
-        addVertex(x, y);
-        Log.i(TAG, mVertices.get(mVertices.size() - 1).toString());
-        Log.i(TAG, "mesh is valid: "  + isValid());
-        return mVertices.size() - 1;
+        Vertex v = addVertex(p);
+        mGraphVertices.add(v);
+        validate();
+        return mGraphVertices.size() - 1;
     }
 
-
-    public float distSq(final Vertex v, final int x, final int y) {
-        return (v.mX - x) * (v.mX - x) + (v.mY - y) * (v.mY - y);
-    }
-
-    public boolean isPointContained(final Vertex v, final int x, final int y) {
-        return distSq(v, x, y) <= mRadius * mRadius;
-    }
-
-    public int pointOnAnyVertex(final int x, final int y) {
+    public int pointOnAnyVertex(Point p) {
         for (int i = 0; i < mVertices.size(); i++) {
-            if (isPointContained(mVertices.get(i), x, y)) {
+            if (p.isInCircle(mVertices.get(i).mP, mRadius)) {
                 return i;
             }
         }
         return -1;
     }
 
-    public void moveVertex(final int vertexInd, final int newX, final int newY) {
-//        Log.i(TAG, "moveVertex not implemented.");
-        mVertices.get(vertexInd).move(newX, newY);
-//        updateIntersections();
-        Log.i(TAG, "mesh is valid: "  + isValid());
+    private ArrayList<Intersection> getIntersections(GraphEdge ge1) {
+//        Log.i(TAG, "Looking for Intersections for " + ge1.mV1.mP.toString() + " and " + ge1.mV2.mP.toString());
+        ArrayList<Intersection> intersections = new ArrayList<>();
+        for (HalfEdge he : mEdges) {
+            if (he.mId > he.mOpposite.mId) continue; // dedupe
+//            Log.i(TAG, "Look at edge:\n" + he.mVertex.toString() + " and\n" + he.mOpposite.mVertex.toString());
+
+            if (Point.segmentsIntersect(
+                    ge1.mV1.mP, ge1.mV2.mP,
+                    he.mVertex.mP, he.mOpposite.mVertex.mP)) {
+                Log.i(TAG, "Intersecting Edge: " + he.toString());
+                Point p = Point.lineIntersection(
+                        ge1.mV1.mP, ge1.mV2.mP,
+                        he.mVertex.mP, he.mOpposite.mVertex.mP);
+                intersections.add(new Intersection(p, he));
+            }
+        }
+        return intersections;
     }
 
-    public void addEdge(final int startVertexInd, final int endVertexInd) {
-        if (mEdges.size() == EDGES_LIMIT) {
+    public void addGraphEdge(final int startVertexInd, final int endVertexInd) {
+        if (mGraphEdges.size() >= EDGES_LIMIT) {
             Log.i(TAG, "At Edge Limit. Not adding more.");
             return;
         }
-        Vertex v1 = mVertices.get(startVertexInd);
-        Vertex v2 = mVertices.get(endVertexInd);
-        Log.i(TAG, v1.toString());
-        Log.i(TAG, v2.toString());
+        Vertex v1 = mGraphVertices.get(startVertexInd);
+        Vertex v2 = mGraphVertices.get(endVertexInd);
 
+        GraphEdge ge = new GraphEdge(v1, v2);
+        mGraphEdges.add(ge);
+        Log.i(TAG, "Num Graph Edges: " + String.valueOf(mGraphEdges.size()));
+        Log.i(TAG, "Vertices:\n" + v1.toString() + "\n" + v2.toString());
 
-        Log.i(TAG,"v1 ANGLES");
-        for (HalfEdge he : getOutEdges(v1)) {
-            Log.i(TAG, String.valueOf(angleBetweenEdges(v2, he)));
+        ArrayList<Intersection> intersections = getIntersections(ge);
+        Collections.sort(intersections, new OrderByDistance(v1.mP));
+        ArrayList<Vertex> vs = new ArrayList<>(Arrays.asList(v1));
+        for (Intersection in: intersections) {
+            Vertex v = splitEdge(in.mHe.mVertex, in.mHe.mOpposite.mVertex, in.mP);
+            vs.add(v);
         }
-        Log.i(TAG,"v2 ANGLES");
-        for (HalfEdge he : getOutEdges(v2)) {
-            Log.i(TAG, String.valueOf(angleBetweenEdges(v1, he)));
+        vs.add(v2);
+        for (int i = 1; i < vs.size(); i++) {
+            addEdge(vs.get(i-1), vs.get(i));
         }
-        HalfEdge he1 = addHalfEdge(v1, v2, mOuterFace); // TODO: fix face
-        HalfEdge he2 = addHalfEdge(v2, v1, mOuterFace); // TODO: fix face
-        mOuterFace.mHe = he1;
-        he1.mOpposite = he2;
-        he2.mOpposite = he1;
-        if (mEdges.size() < 4) {
-            he1.mNext = he2;
-            he2.mNext = he1;
-        } else {
-            he1.mNext = he2;
-            he2.mNext = mEdges.get(0);
-            mEdges.get(mEdges.size() - 3).mNext = he1;
-        }
-//        updateIntersections();
-        Log.i(TAG, "mesh is valid: "  + isValid());
+        validate();
+        Log.i(TAG, toString());
     }
 
-    private double angleBetweenEdges(Vertex v1, HalfEdge he2) {
-        Vertex v = he2.mVertex;
-        if (v.mId != he2.mVertex.mId) throw new AssertionError("These should be the same");
-        PointF zV1 = new PointF(
-                v1.mX - v.mX,
-                v1.mY - v.mY);
-        PointF zV2 = new PointF(
-                he2.mOpposite.mVertex.mX - v.mX,
-                he2.mOpposite.mVertex.mY - v.mY);
-        double cos = (double)(zV1.x * zV2.x + zV1.y * zV2.y) // dot product
-                / (zV1.length() + zV2.length());
-        return cos;
+    private void addEdge(Vertex v1, Vertex v2) {
+        if (edgeBetweenVertices(v1, v2) != null) {
+            Log.i(TAG, "GOOD CATCH");
+            return; // Needs improvement
+        }
+        validate();
+        Face f = faceBetweenPoints(v1.mP, v2.mP);
+        if (!v1.isIsolated() && !v2.isIsolated()) { // two connected vertices
+            splitFace(f, v1, v2);
+        } else { // At least one vertex is isolated
+            boolean v1Isolated = v1.isIsolated(); // Mark before adding edges
+            boolean v2Isolated = v2.isIsolated(); // Mark before adding edges
+            HalfEdge he1 = addHalfEdge(v1, v2, f);
+            HalfEdge he2 = addHalfEdge(v2, v1, f);
+            he1.mOpposite = he2;
+            he2.mOpposite = he1;
+            // Set next edges appropriately
+            HalfEdge prev1 = v1Isolated ? he2 : findPreviousEdgeOnFace(v1, f);
+            HalfEdge prev2 = v2Isolated ? he1 : findPreviousEdgeOnFace(v2, f);
+            he2.mNext = prev1.mNext;
+            prev1.mNext = he1;
+            he1.mNext = prev2.mNext;
+            prev2.mNext = he2;
+            f.mHe = he1; // This step should be last
+        }
+        validate();
     }
 
     public void draw(final Canvas canv) {
-//        mOuterFace.draw(canv);
+        validate();
+        ArrayList<Integer> colors = new ArrayList<>(Arrays.asList(Color.YELLOW,
+                Color.MAGENTA, Color.GREEN, Color.CYAN, Color.BLUE, Color.DKGRAY));
+        Paint fPaint = new Paint();
+        fPaint.setStyle(Paint.Style.FILL);
+        for (Face f : mFaces) {
+            if (f.mId == 0) fPaint.setColor(Color.LTGRAY);
+            else fPaint.setColor(colors.get((f.mId-1)%colors.size()));
+            drawFace(canv, fPaint, f);
+        }
         Paint ePaint = new Paint();
-        ePaint.setColor(Color.CYAN);
+        ePaint.setColor(Color.BLACK);
         ePaint.setStrokeWidth(10);
         for (HalfEdge edge : mEdges) {
             canv.drawLine(
-                    edge.mVertex.mX,
-                    edge.mVertex.mY,
-                    edge.mOpposite.mVertex.mX,
-                    edge.mOpposite.mVertex.mY,
+                    edge.mVertex.mP.x,
+                    edge.mVertex.mP.y,
+                    edge.mOpposite.mVertex.mP.x,
+                    edge.mOpposite.mVertex.mP.y,
                     ePaint);
         }
         Paint vPaint = new Paint();
-        vPaint.setColor(Color.RED);
-        vPaint.setStrokeWidth(5);
-        vPaint.setStyle(Paint.Style.FILL);
-        for (Vertex vertex : mVertices) {
-            canv.drawCircle(vertex.mX, vertex.mY, 30, vPaint);
+        vPaint.setStrokeWidth(8);
+        for (Vertex v : mVertices) {
+            if (mGraphVertices.contains(v)) {
+                vPaint.setStyle(Paint.Style.FILL);
+                vPaint.setColor(Color.RED);
+                canv.drawCircle(v.mP.x, v.mP.y, 30, vPaint);
+                vPaint.setStyle(Paint.Style.STROKE);
+                vPaint.setColor(Color.BLACK);
+                canv.drawCircle(v.mP.x, v.mP.y, 30, vPaint);
+            } else {
+                vPaint.setStyle(Paint.Style.STROKE);
+                vPaint.setColor(Color.WHITE);
+                canv.drawCircle(v.mP.x, v.mP.y, 30, vPaint);
+                vPaint.setColor(Color.BLACK);
+                canv.drawCircle(v.mP.x, v.mP.y, 33, vPaint);
+            }
         }
-//        for (Vertex intersection : mVirtualVertices) {
-//            intersection.draw(canv);
-//        }
+
+        for (Point p : mIntersections) {
+            vPaint.setStyle(Paint.Style.STROKE);
+            vPaint.setColor(Color.BLACK);
+            canv.drawCircle(p.x, p.y, 30, vPaint);
+        }
+    }
+
+    private void drawFace(final Canvas canv, Paint paint, Face face) {
+        Path path = new Path();
+        if (face.mHe == null) {
+            canv.drawRect(0, 0, canv.getWidth(), canv.getHeight(), paint);
+            return;
+        }
+        ArrayList<Vertex> vertices = face.getVertices();
+        if (vertices.size() > 0) {
+            Vertex lastVertex = vertices.get(vertices.size() - 1);
+            path.moveTo(lastVertex.mP.x, lastVertex.mP.y);
+            for (Vertex vertex : vertices) {
+                path.lineTo(vertex.mP.x, vertex.mP.y);
+            }
+        }
+        if (face.mId == 0) { // outer face
+            if (vertices.size() < 3) {
+                canv.drawRect(0, 0, canv.getWidth(), canv.getHeight(), paint);
+            } else {
+                path.toggleInverseFillType();
+                RectF bounds = new RectF();
+                path.computeBounds(bounds, true);
+                canv.drawRect(0, bounds.bottom, canv.getWidth(), canv.getHeight(), paint);
+                canv.drawRect(0, bounds.top, bounds.left, bounds.bottom, paint);
+                canv.drawRect(0, 0, canv.getWidth(), bounds.top, paint);
+                canv.drawRect(bounds.right, bounds.top, canv.getWidth(), bounds.bottom, paint);
+            }
+        }
+        canv.drawPath(path, paint);
+    }
+
+    @Override
+    public void clear() {
+        super.clear();
+        mGraphEdges = new ArrayList<>();
+        mGraphVertices = new ArrayList<>();
+        mIntersections = new ArrayList<>();
     }
 }

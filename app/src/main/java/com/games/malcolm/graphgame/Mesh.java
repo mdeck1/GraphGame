@@ -295,15 +295,15 @@ public class Mesh {
         validateHalfEdgesNextUnique();
         validateHalfEdgeNextLoops();
         validateHalfEdgeOppositeNextLoops();
+        validateNoEdgesCross();
         // Face validations
         validateHalfEdgesAroundFaces();
+        validateFacesAllContainedByOuterFace();
         // Vertex validations
         validateHalfEdgesAroundVertices();
         validateVerticesAllConnected();
 
-        // point containement ?
         // 0 intersections ?
-        // Outer edge contains every other face
     }
 
     private void validateIndividualHalfEdges() {
@@ -475,6 +475,24 @@ public class Mesh {
             if (v.isIsolated()) continue;
             if (!vs[i]) throw new AssertionError(v.toString()
                     + " is not connected to " + mVertices.get(0).toString());
+        }
+    }
+    private void validateFacesAllContainedByOuterFace() {
+        Face outerFace = mFaces.get(0);
+        for (Face f : mFaces) {
+            if (f.mId == 0) continue;
+            if (!outerFace.containsFace(f)) throw new AssertionError(f.toString()
+                    + " not contained by outer face.");
+        }
+    }
+    private void validateNoEdgesCross() {
+        for (HalfEdge he1 : mEdges) {
+            for (HalfEdge he2 : mEdges) {
+                if (he1.mId == he2.mId) continue;
+                if (Point.segmentsIntersect(he1.mVertex.mP,he1.mOpposite.mVertex.mP,
+                        he2.mVertex.mP, he2.mOpposite.mVertex.mP))
+                    throw new AssertionError(he1.toString() + " intersects with " + he2.toString());
+            }
         }
     }
 

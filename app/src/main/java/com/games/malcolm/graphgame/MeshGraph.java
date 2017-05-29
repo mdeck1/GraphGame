@@ -130,8 +130,6 @@ public class MeshGraph extends Mesh {
 
         GraphEdge ge = new GraphEdge(v1, v2);
         mGraphEdges.add(ge);
-        Log.i(TAG, "Num Graph Edges: " + String.valueOf(mGraphEdges.size()));
-        Log.i(TAG, "Vertices:\n" + v1.toString() + "\n" + v2.toString());
 
         ArrayList<Intersection> intersections = getIntersections(ge);
         Collections.sort(intersections, new OrderByDistance(v1.mP));
@@ -145,7 +143,6 @@ public class MeshGraph extends Mesh {
             addEdge(vs.get(i-1), vs.get(i));
         }
         validate();
-        Log.i(TAG, toString());
     }
 
     private void addEdge(Vertex v1, Vertex v2) {

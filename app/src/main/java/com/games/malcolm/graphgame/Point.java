@@ -88,18 +88,10 @@ public class Point extends PointF {
     }
 
     public float angleBetweenPoints(Point p1, Point p2) {
-//        Log.i(TAG, "ANGLE: this: " + this.toString());
-//        Log.i(TAG, "ANGLE: p1: " + p1.toString());
-//        Log.i(TAG, "ANGLE: p2: " + p2.toString());
         Point v1 = p1.copyMinus(this);
         Point v2 = p2.copyMinus(this);
-//        Log.i(TAG, "ANGLE: v1: " + v1.toString());
-//        Log.i(TAG, "ANGLE: v2: " + v2.toString());
         float cos = v1.dot(v2) / (v1.length() * v2.length());
-//        Log.i(TAG, "ANGLE: cos: " + cos);
-//        double a = Math.acos(cos) * 180 / Math.PI;
         float angle = (float) (Math.acos(cos) * 180 / Math.PI);
-//        Log.i(TAG, "ANGLE: angle: " + angle);
         return v1.cross(v2) < 0 ? 360 - angle : angle;
     }
 

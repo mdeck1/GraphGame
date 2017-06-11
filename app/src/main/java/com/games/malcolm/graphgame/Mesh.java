@@ -200,7 +200,8 @@ public class Mesh {
     }
 
     public Face splitFace(Face f1, Vertex v1, Vertex v2) {
-        validate();        Face f2 = addFace();
+        validate();
+        Face f2 = addFace();
         HalfEdge he1 = addHalfEdge(v1, v2, f1);
         HalfEdge he2 = addHalfEdge(v2, v1, f2);
         he1.mOpposite = he2;
@@ -268,7 +269,6 @@ public class Mesh {
         ArrayList<HalfEdge> candidates = new ArrayList<>();
         for (HalfEdge he : f.getEdges()) {
             if (he.mVertex.mId == v.mId) {
-//                return he;
                 candidates.add(he);
             }
         }
@@ -277,7 +277,7 @@ public class Mesh {
 
     private HalfEdge pickCandidateByNearestAngle(Vertex v, Point p, ArrayList<HalfEdge> candidates) {
         HalfEdge best = null;
-        float bestAngle = Integer.MAX_VALUE; // TODO: figure out which direction and validate
+        float bestAngle = Float.MAX_VALUE;
         for (HalfEdge he : candidates) {
             float angle = v.mP.angleBetweenPoints(he.mOpposite.mVertex.mP, p);
             if (angle < bestAngle) {

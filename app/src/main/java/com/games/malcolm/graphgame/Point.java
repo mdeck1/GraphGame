@@ -1,6 +1,7 @@
 package com.games.malcolm.graphgame;
 
 import android.graphics.PointF;
+import android.util.Log;
 
 import java.util.Comparator;
 
@@ -9,6 +10,9 @@ import java.util.Comparator;
  */
 
 public class Point extends PointF {
+
+    private String TAG = "Point";
+
     Point(float x, float y) {
         super(x, y);
     }
@@ -40,7 +44,7 @@ public class Point extends PointF {
 
     public boolean isInCircle(Point center, float radius) {
         Point p = copyMinus(center);
-        return dot(this) < radius * radius; // dot(this) = length^2
+        return p.dot(p) < radius * radius; // dot(this) = length^2
     }
 
     public float dot(Point p) {
@@ -83,21 +87,24 @@ public class Point extends PointF {
         );
     }
 
+    public float angleBetweenPoints(Point p1, Point p2) {
+//        Log.i(TAG, "ANGLE: this: " + this.toString());
+//        Log.i(TAG, "ANGLE: p1: " + p1.toString());
+//        Log.i(TAG, "ANGLE: p2: " + p2.toString());
+        Point v1 = p1.copyMinus(this);
+        Point v2 = p2.copyMinus(this);
+//        Log.i(TAG, "ANGLE: v1: " + v1.toString());
+//        Log.i(TAG, "ANGLE: v2: " + v2.toString());
+        float cos = v1.dot(v2) / (v1.length() * v2.length());
+//        Log.i(TAG, "ANGLE: cos: " + cos);
+//        double a = Math.acos(cos) * 180 / Math.PI;
+        float angle = (float) (Math.acos(cos) * 180 / Math.PI);
+//        Log.i(TAG, "ANGLE: angle: " + angle);
+        return v1.cross(v2) < 0 ? 360 - angle : angle;
+    }
+
     @Override
     public String toString() {
         return "(x: " + x + ", y: " + y + ")";
     }
-
-//    public static class OrderByDistance implements Comparator<Point> {
-//        Point mOrigin;
-//        OrderByDistance(Point p) {
-//            mOrigin = p;
-//        }
-//        @Override
-//        public int compare(Point p1, Point p2) {
-//            Point v1 = p1.copyMinus(mOrigin);
-//            Point v2 = p2.copyMinus(mOrigin);
-//            return Float.compare(v1.dot(v1), v2.dot(v2));
-//        }
-//    }
 }

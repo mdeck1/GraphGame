@@ -39,6 +39,12 @@
                 android:id="@+id/button_save_level"
                 android:text="@string/button_save_level"/>
 
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/button_toggle_mode"
+                android:text="@string/button_toggle_mode"/>
+
         </LinearLayout>
 
         <EditText

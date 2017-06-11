@@ -2,6 +2,8 @@ package com.games.malcolm.graphgame;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseArray;
@@ -20,6 +22,24 @@ public class InteractiveCircleView extends View {
     // TODO: Move these things into the graph class. It should handle how things move around.
     private static final int CIRCLES_LIMIT = 6;
     private SparseIntArray mVertexPointer;
+    private MODE mMode = MODE.CREATE_V;
+    private int mSelectedVertex = -1;
+
+    private enum MODE {
+        SELECT_V,
+        CREATE_V,
+        CREATE_E,
+    }
+
+    public void toggleMode() {
+        int ind = (mMode.ordinal() + 1) % MODE.values().length;
+        mMode = MODE.values()[ind];
+        Log.i(TAG, "Mode: " + String.valueOf(mMode));
+    }
+
+    public String getMode() {
+        return mMode.toString();
+    }
 
     private MeshGraph mGraph;
 
@@ -31,23 +51,37 @@ public class InteractiveCircleView extends View {
     public InteractiveCircleView(final Context ct) {
         super(ct);
         mGraph = new MeshGraph();
+        Log.i(TAG, "Mode: " + String.valueOf(mMode));
         mVertexPointer = new SparseIntArray(CIRCLES_LIMIT);
     }
     public InteractiveCircleView(final Context ct, final AttributeSet attrs) {
         super(ct, attrs);
         mGraph = new MeshGraph();
+        Log.i(TAG, "Mode: " + String.valueOf(mMode));
         mVertexPointer = new SparseIntArray(CIRCLES_LIMIT);
     }
 
     public InteractiveCircleView(final Context ct, final AttributeSet attrs, final int defStyle) {
         super(ct, attrs, defStyle);
         mGraph = new MeshGraph();
+        Log.i(TAG, "Mode: " + String.valueOf(mMode));
         mVertexPointer = new SparseIntArray(CIRCLES_LIMIT);
     }
 
     @Override
     public void onDraw(final Canvas canv) {
         mGraph.draw(canv);
+        if (mSelectedVertex > -1) {
+            Mesh.Vertex v = mGraph.mGraphVertices.get(mSelectedVertex);
+            Paint vPaint = new Paint();
+            vPaint.setStrokeWidth(8);
+            vPaint.setStyle(Paint.Style.FILL);
+            vPaint.setColor(Color.BLACK);
+            canv.drawCircle(v.mP.x, v.mP.y, 30, vPaint);
+            vPaint.setStyle(Paint.Style.STROKE);
+            vPaint.setColor(Color.BLACK);
+            canv.drawCircle(v.mP.x, v.mP.y, 30, vPaint);
+        }
     }
 
     @Override
@@ -69,45 +103,72 @@ public class InteractiveCircleView extends View {
                 xTouch = (int) event.getX(0);
                 yTouch = (int) event.getY(0);
                 touchedVertex = mGraph.pointOnAnyVertex(new Point(xTouch, yTouch));
-                if (touchedVertex > -1) {
-                    mVertexPointer.put(event.getPointerId(0), touchedVertex);
-                } else {
-                    int newVertInd = mGraph.addGraphVertex(xTouch, yTouch);
-//                    if (newVertInd > 0) {
-//                        mGraph.addGraphEdge(0, newVertInd);
-//                    }
-                    for (int i = 0; i < newVertInd; i++) {
-                        mGraph.addGraphEdge(i, newVertInd);
-                    }
+                switch (mMode) {
+                    case SELECT_V:
+                        mSelectedVertex =
+                                ((touchedVertex > -1) && (touchedVertex != mSelectedVertex)) ?
+                                touchedVertex : -1;
+                        break;
+                    case CREATE_V:
+                        if (touchedVertex <= -1) {
+                            mGraph.addGraphVertex(xTouch, yTouch);
+                        }
+                        break;
+                    case CREATE_E:
+                        if (touchedVertex == -1) {
+                            break;
+                        }
+                        if ((mSelectedVertex > -1) && (touchedVertex != mSelectedVertex)) {
+                            mGraph.addGraphEdge(mSelectedVertex, touchedVertex);
+                            mSelectedVertex = touchedVertex;
+                        } else {
+                            mSelectedVertex =
+                                    ((touchedVertex > -1) && (touchedVertex != mSelectedVertex)) ?
+                                            touchedVertex : -1;
+                        }
+                        break;
                 }
+//                Log.i(TAG, "Num Vertices: " + mGraph.mGraphVertices.size());
+//                Log.i(TAG, "Touched vertex: " + String.valueOf(touchedVertex));
+//                if (touchedVertex > -1) {
+//                    mVertexPointer.put(event.getPointerId(0), touchedVertex);
+//                } else {
+//                    int newVertInd = mGraph.addGraphVertex(xTouch, yTouch);
+////                    if (newVertInd > 0) {
+////                        mGraph.addGraphEdge(0, newVertInd);
+////                    }
+//                    for (int i = 0; i < newVertInd; i++) {
+//                        mGraph.addGraphEdge(i, newVertInd);
+//                    }
+//                }
 
                 invalidate();
                 handled = true;
                 break;
 
             case MotionEvent.ACTION_POINTER_DOWN:
-                Log.w(TAG, "Pointer down");
-                // It secondary pointers, so obtain their ids and check circles
-                pointerId = event.getPointerId(actionIndex);
-
-                xTouch = (int) event.getX(actionIndex);
-                yTouch = (int) event.getY(actionIndex);
-
-                touchedVertex = mGraph.pointOnAnyVertex(new Point(xTouch, yTouch));
-                if (touchedVertex > -1) {
-                    mVertexPointer.put(event.getPointerId(pointerId), touchedVertex);
-                } else {
-                    int newVertInd = mGraph.addGraphVertex(xTouch, yTouch);
-//                    if (newVertInd > 0) {
-//                        mGraph.addGraphEdge(0, newVertInd);
+//                Log.w(TAG, "Pointer down");
+//                // It secondary pointers, so obtain their ids and check circles
+//                pointerId = event.getPointerId(actionIndex);
+//
+//                xTouch = (int) event.getX(actionIndex);
+//                yTouch = (int) event.getY(actionIndex);
+//
+//                touchedVertex = mGraph.pointOnAnyVertex(new Point(xTouch, yTouch));
+//                if (touchedVertex > -1) {
+//                    mVertexPointer.put(event.getPointerId(pointerId), touchedVertex);
+//                } else {
+//                    int newVertInd = mGraph.addGraphVertex(xTouch, yTouch);
+////                    if (newVertInd > 0) {
+////                        mGraph.addGraphEdge(0, newVertInd);
+////                    }
+//                    for (int i = 0; i < newVertInd; i++) {
+//                        mGraph.addGraphEdge(i, newVertInd);
 //                    }
-                    for (int i = 0; i < newVertInd; i++) {
-                        mGraph.addGraphEdge(i, newVertInd);
-                    }
-                }
-                invalidate();
-                handled = true;
-                break;
+//                }
+//                invalidate();
+//                handled = true;
+//                break;
 
             case MotionEvent.ACTION_MOVE:
                 /*

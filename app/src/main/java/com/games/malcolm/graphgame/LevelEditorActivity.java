@@ -21,6 +21,7 @@ public class LevelEditorActivity extends AppCompatActivity {
 
     private Button mClearButton;
     private Button mSaveLevelButton;
+    private Button mToggleModeButton;
     private EditText mLevelName;
 
     private FirebaseDatabase mDatabase;
@@ -37,10 +38,22 @@ public class LevelEditorActivity extends AppCompatActivity {
 
         mClearButton = (Button) findViewById(R.id.button_clear);
         mSaveLevelButton = (Button) findViewById(R.id.button_save_level);
+        mToggleModeButton = (Button) findViewById(R.id.button_toggle_mode);
         mLevelName = (EditText) findViewById(R.id.text_level_name);
+        mToggleModeButton.setText(mInteractiveCircleView.getMode());
 
         mDatabase = FirebaseDatabase.getInstance();
         mAuth = FirebaseAuth.getInstance();
+
+        mToggleModeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mInteractiveCircleView.toggleMode();
+                mToggleModeButton.setText(mInteractiveCircleView.getMode());
+
+            }
+        });
+
 
         mClearButton.setOnClickListener(new View.OnClickListener() {
             @Override

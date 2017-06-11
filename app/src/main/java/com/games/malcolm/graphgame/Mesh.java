@@ -2,7 +2,6 @@ package com.games.malcolm.graphgame;
 
 import android.util.Log;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -85,6 +84,7 @@ public class Mesh {
         }
 
         // Use crossings method. Count number of crossings with horizontal ray to the right.
+        // This is undefined when the point is on the edge of the face.
         public boolean containsPoint(Point p) {
             int crossings = 0;
             for (HalfEdge he : getEdges()) {
@@ -200,19 +200,19 @@ public class Mesh {
     }
 
     public Face splitFace(Face f1, Vertex v1, Vertex v2) {
-        validate();
-        Face f2 = addFace();
+        validate();        Face f2 = addFace();
         HalfEdge he1 = addHalfEdge(v1, v2, f1);
         HalfEdge he2 = addHalfEdge(v2, v1, f2);
         he1.mOpposite = he2;
         he2.mOpposite = he1;
-        // set next edge for all relevant edges
-        for (HalfEdge he : f1.getEdges()) {
-            if (he.mVertex == v1) { he.mNext = he1; }
-            if (he.mVertex == v2) { he.mNext = he2; }
-            if (he.mOpposite.mVertex == v1) { he2.mNext = he; }
-            if (he.mOpposite.mVertex == v2) { he1.mNext = he; }
-        }
+        // Find previous edges and set all next fields appropriately
+        HalfEdge he1_prev = findPreviousEdgeOnFace(v1, v2.mP, f1);
+        HalfEdge he2_prev = findPreviousEdgeOnFace(v2, v1.mP, f1);
+        he2.mNext = he1_prev.mNext;
+        he1.mNext = he2_prev.mNext;
+        he1_prev.mNext = he1;
+        he2_prev.mNext = he2;
+
         f1.mHe = he1;
         f2.mHe = he2;
         // Fix which edge the faces point to if necessary.
@@ -221,6 +221,7 @@ public class Mesh {
             f1.mHe = he2;
             f2.mHe = he1;
         }
+
         // set faces for all edges
         for (HalfEdge he : f1.getEdges()) {
             he.mFace = f1;
@@ -263,13 +264,28 @@ public class Mesh {
         return null; // No edge between v1 and v2
     }
 
-    protected HalfEdge findPreviousEdgeOnFace(Vertex v, Face f) {
+    protected HalfEdge findPreviousEdgeOnFace(Vertex v, Point p, Face f) {
+        ArrayList<HalfEdge> candidates = new ArrayList<>();
         for (HalfEdge he : f.getEdges()) {
             if (he.mVertex.mId == v.mId) {
-                return he;
+//                return he;
+                candidates.add(he);
             }
         }
-        return null; // Vertex v doesn't touch Face f
+        return pickCandidateByNearestAngle(v, p, candidates);
+    }
+
+    private HalfEdge pickCandidateByNearestAngle(Vertex v, Point p, ArrayList<HalfEdge> candidates) {
+        HalfEdge best = null;
+        float bestAngle = Integer.MAX_VALUE; // TODO: figure out which direction and validate
+        for (HalfEdge he : candidates) {
+            float angle = v.mP.angleBetweenPoints(he.mOpposite.mVertex.mP, p);
+            if (angle < bestAngle) {
+                best = he;
+                bestAngle = angle;
+            }
+        }
+        return best;
     }
 
     public void clear() {
@@ -296,12 +312,13 @@ public class Mesh {
         validateHalfEdgeNextLoops();
         validateHalfEdgeOppositeNextLoops();
         validateNoEdgesCross();
+        // Vertex validations
+        validateNoVerticesTheSame();
+        validateHalfEdgesAroundVertices();
+        validateVerticesAllConnected();
         // Face validations
         validateHalfEdgesAroundFaces();
         validateFacesAllContainedByOuterFace();
-        // Vertex validations
-        validateHalfEdgesAroundVertices();
-        validateVerticesAllConnected();
 
         // 0 intersections ?
     }
@@ -460,7 +477,12 @@ public class Mesh {
         // Use BFS to mark all vertices connected to first Vertex
         boolean vs[] = new boolean[mVertices.size()];
         ArrayList<Vertex> children = new ArrayList<>();
-        children.add(mVertices.get(0));
+        for (Vertex v : mVertices) {
+            if (!v.isIsolated()) {
+                children.add(v);
+                break;
+            }
+        }
         while (!children.isEmpty()) {
             Vertex v = children.remove(0);
             vs[v.mId] = true;
@@ -483,6 +505,15 @@ public class Mesh {
             if (f.mId == 0) continue;
             if (!outerFace.containsFace(f)) throw new AssertionError(f.toString()
                     + " not contained by outer face.");
+        }
+    }
+    private void validateNoVerticesTheSame() {
+        for (Vertex v1 : mVertices) {
+            for (Vertex v2 : mVertices) {
+                if (v1.mId == v2.mId) continue;
+                if ((v1.mP.x == v2.mP.x) && (v1.mP.y == v2.mP.y))
+                    throw new AssertionError(v1.toString() + " is the same as " + v2.toString());
+            }
         }
     }
     private void validateNoEdgesCross() {

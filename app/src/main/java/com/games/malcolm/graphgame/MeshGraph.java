@@ -26,8 +26,8 @@ public class MeshGraph extends Mesh {
 
     private int mRadius = 30;
 
-    private static final int VERTICES_LIMIT = 5;
-    private static final int EDGES_LIMIT = 10; // with |V| = 5, |E|=10 is K5, so limit to 9
+    private static final int VERTICES_LIMIT = 20;
+    private static final int EDGES_LIMIT = 20; // with |V| = 5, |E|=10 is K5, so limit to 9
 
     private ArrayList<Point> mIntersections;
 
@@ -92,8 +92,8 @@ public class MeshGraph extends Mesh {
     }
 
     public int pointOnAnyVertex(Point p) {
-        for (int i = 0; i < mVertices.size(); i++) {
-            if (p.isInCircle(mVertices.get(i).mP, mRadius)) {
+        for (int i = 0; i < mGraphVertices.size(); i++) {
+            if (p.isInCircle(mGraphVertices.get(i).mP, mRadius)) {
                 return i;
             }
         }
@@ -162,8 +162,8 @@ public class MeshGraph extends Mesh {
             he1.mOpposite = he2;
             he2.mOpposite = he1;
             // Set next edges appropriately
-            HalfEdge prev1 = v1Isolated ? he2 : findPreviousEdgeOnFace(v1, f);
-            HalfEdge prev2 = v2Isolated ? he1 : findPreviousEdgeOnFace(v2, f);
+            HalfEdge prev1 = v1Isolated ? he2 : findPreviousEdgeOnFace(v1, v2.mP, f);
+            HalfEdge prev2 = v2Isolated ? he1 : findPreviousEdgeOnFace(v2, v1.mP, f);
             he2.mNext = prev1.mNext;
             prev1.mNext = he1;
             he1.mNext = prev2.mNext;

@@ -3,8 +3,6 @@ package com.games.malcolm.graphgame;
 import android.graphics.PointF;
 import android.util.Log;
 
-import java.util.Comparator;
-
 /**
  * Created by Thomas on 5/24/17.
  */
@@ -31,6 +29,7 @@ public class Point extends PointF {
 
     public static Point average(Point... ps) {
         Point avg = new Point(0, 0);
+        if (ps.length == 0) return avg;
         for (Point p : ps) {
             avg.plus(p);
         }
@@ -90,13 +89,27 @@ public class Point extends PointF {
     public float angleBetweenPoints(Point p1, Point p2) {
         Point v1 = p1.copyMinus(this);
         Point v2 = p2.copyMinus(this);
+        if (v1.length() == 0 || v2.length() == 0) return 0.0F;
         float cos = v1.dot(v2) / (v1.length() * v2.length());
+        Log.i(TAG, "cos: " + String.valueOf(cos));
+        if (cos > 1.0F) cos = 1.0F;
+        else if (cos < -1.0F) cos = -1.0F;
+        Log.i(TAG, "cos: " + String.valueOf(cos));
         float angle = (float) (Math.acos(cos) * 180 / Math.PI);
+        Log.i(TAG, "angle: " + String.valueOf(angle));
         return v1.cross(v2) < 0 ? 360 - angle : angle;
     }
 
     @Override
     public String toString() {
         return "(x: " + x + ", y: " + y + ")";
+    }
+    @Override
+    public boolean equals(Object o) {
+        if (o.getClass() != Point.class) return false;
+        Point p = (Point)o;
+        float xDiff = Math.abs(x - p.x);
+        float yDiff = Math.abs(y - p.y);
+        return xDiff < 0.5 && yDiff < 0.5;
     }
 }

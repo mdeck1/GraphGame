@@ -24,24 +24,31 @@ public class InteractiveCircleView extends View {
     private SparseIntArray mVertexPointer;
     private MODE mMode = MODE.CREATE_V;
     private int mSelectedVertex = -1;
+    private int debugStep = 0;
 
     private enum MODE {
         SELECT_V,
         CREATE_V,
         CREATE_E,
+        DELETE_E,
+        DELETE_V,
+        MOVE_V,
+        DEBUG,
     }
 
     public void toggleMode() {
+        mSelectedVertex = -1;
         int ind = (mMode.ordinal() + 1) % MODE.values().length;
         mMode = MODE.values()[ind];
         Log.i(TAG, "Mode: " + String.valueOf(mMode));
+        invalidate();
     }
 
     public String getMode() {
         return mMode.toString();
     }
 
-    private MeshGraph mGraph;
+    private Graph mGraph;
 
     /**
      * Default constructor
@@ -50,38 +57,27 @@ public class InteractiveCircleView extends View {
      */
     public InteractiveCircleView(final Context ct) {
         super(ct);
-        mGraph = new MeshGraph();
+        mGraph = new Graph();
         Log.i(TAG, "Mode: " + String.valueOf(mMode));
         mVertexPointer = new SparseIntArray(CIRCLES_LIMIT);
     }
     public InteractiveCircleView(final Context ct, final AttributeSet attrs) {
         super(ct, attrs);
-        mGraph = new MeshGraph();
+        mGraph = new Graph();
         Log.i(TAG, "Mode: " + String.valueOf(mMode));
         mVertexPointer = new SparseIntArray(CIRCLES_LIMIT);
     }
 
     public InteractiveCircleView(final Context ct, final AttributeSet attrs, final int defStyle) {
         super(ct, attrs, defStyle);
-        mGraph = new MeshGraph();
+        mGraph = new Graph();
         Log.i(TAG, "Mode: " + String.valueOf(mMode));
         mVertexPointer = new SparseIntArray(CIRCLES_LIMIT);
     }
 
     @Override
     public void onDraw(final Canvas canv) {
-        mGraph.draw(canv);
-        if (mSelectedVertex > -1) {
-            Mesh.Vertex v = mGraph.mGraphVertices.get(mSelectedVertex);
-            Paint vPaint = new Paint();
-            vPaint.setStrokeWidth(8);
-            vPaint.setStyle(Paint.Style.FILL);
-            vPaint.setColor(Color.BLACK);
-            canv.drawCircle(v.mP.x, v.mP.y, 30, vPaint);
-            vPaint.setStyle(Paint.Style.STROKE);
-            vPaint.setColor(Color.BLACK);
-            canv.drawCircle(v.mP.x, v.mP.y, 30, vPaint);
-        }
+        mGraph.draw(canv, mSelectedVertex);
     }
 
     @Override
@@ -116,6 +112,7 @@ public class InteractiveCircleView extends View {
                         break;
                     case CREATE_E:
                         if (touchedVertex == -1) {
+                            mSelectedVertex = -1;
                             break;
                         }
                         if ((mSelectedVertex > -1) && (touchedVertex != mSelectedVertex)) {
@@ -127,7 +124,78 @@ public class InteractiveCircleView extends View {
                                             touchedVertex : -1;
                         }
                         break;
-                }
+                    case DELETE_E:
+                        if (touchedVertex == -1) {
+                            mSelectedVertex = -1;
+                            break;
+                        }
+                        if ((mSelectedVertex > -1) && (touchedVertex != mSelectedVertex)) {
+                            mGraph.deleteGraphEdge(mSelectedVertex, touchedVertex);
+                            mSelectedVertex = -1;
+                        } else {
+                            mSelectedVertex =
+                                    ((touchedVertex > -1) && (touchedVertex != mSelectedVertex)) ?
+                                            touchedVertex : -1;
+                        }
+                        break;
+                    case DELETE_V:
+                        if (touchedVertex == -1) {
+                            mSelectedVertex = -1;
+                            break;
+                        }
+                        if ((mSelectedVertex > -1) && (touchedVertex == mSelectedVertex)) {
+                            mGraph.deleteGraphVertex(mSelectedVertex);
+                            mSelectedVertex = -1;
+                        } else {
+                            mSelectedVertex =
+                                    ((touchedVertex > -1) && (touchedVertex != mSelectedVertex)) ?
+                                            touchedVertex : -1;
+                        }
+                        break;
+                    case MOVE_V:
+                        pointerId = event.getPointerId(actionIndex);
+                        mSelectedVertex =
+                                ((touchedVertex > -1) && (touchedVertex != mSelectedVertex)) ?
+                                        touchedVertex : -1;
+                        if (touchedVertex > -1) {
+                            Log.i(TAG, "move pointer set");
+                            mVertexPointer.put(event.getPointerId(pointerId), touchedVertex);
+                        }
+                        invalidate();
+                        handled = true;
+                        break;
+                    case DEBUG:
+                        Log.i(TAG, "debug step: " + debugStep);
+                        switch (debugStep) {
+                            case 0:
+                                mGraph.addGraphVertex(402, 925);
+                                break;
+                            case 1:
+                                mGraph.addGraphVertex(492, 1155);
+                                break;
+                            case 2:
+                                mGraph.addGraphVertex(765, 987);
+                                break;
+                            case 3:
+                                mGraph.addGraphVertex(501, 1178);
+                                break;
+                            case 4:
+                                mGraph.addGraphEdge(1, 2);
+                                break;
+                            case 5:
+                                mGraph.addGraphEdge(0, 2);
+                                break;
+                            case 6:
+                                mGraph.addGraphEdge(1, 0);
+                                break;
+                            case 7:
+                                mGraph.addGraphEdge(0, 3);
+                                break;
+                            default:
+                                break;
+                        }
+                        debugStep++;
+                        }
 //                Log.i(TAG, "Num Vertices: " + mGraph.mGraphVertices.size());
 //                Log.i(TAG, "Touched vertex: " + String.valueOf(touchedVertex));
 //                if (touchedVertex > -1) {
@@ -147,6 +215,7 @@ public class InteractiveCircleView extends View {
                 break;
 
             case MotionEvent.ACTION_POINTER_DOWN:
+//                if (mMode != MODE.MOVE_V) break;
 //                Log.w(TAG, "Pointer down");
 //                // It secondary pointers, so obtain their ids and check circles
 //                pointerId = event.getPointerId(actionIndex);
@@ -155,23 +224,19 @@ public class InteractiveCircleView extends View {
 //                yTouch = (int) event.getY(actionIndex);
 //
 //                touchedVertex = mGraph.pointOnAnyVertex(new Point(xTouch, yTouch));
+//                mSelectedVertex =
+//                        ((touchedVertex > -1) && (touchedVertex != mSelectedVertex)) ?
+//                                touchedVertex : -1;
 //                if (touchedVertex > -1) {
 //                    mVertexPointer.put(event.getPointerId(pointerId), touchedVertex);
-//                } else {
-//                    int newVertInd = mGraph.addGraphVertex(xTouch, yTouch);
-////                    if (newVertInd > 0) {
-////                        mGraph.addGraphEdge(0, newVertInd);
-////                    }
-//                    for (int i = 0; i < newVertInd; i++) {
-//                        mGraph.addGraphEdge(i, newVertInd);
-//                    }
 //                }
 //                invalidate();
 //                handled = true;
-//                break;
+                break;
 
             case MotionEvent.ACTION_MOVE:
-                /*
+                if (mMode != MODE.MOVE_V) break;
+
                 final int pointerCount = event.getPointerCount();
 
 //                Log.w(TAG, "Move");
@@ -182,26 +247,29 @@ public class InteractiveCircleView extends View {
 
                     xTouch = (int) event.getX(actionIndex);
                     yTouch = (int) event.getY(actionIndex);
-                    Integer touchedVertexInd = mVertexPointer.get(pointerId);
-                    if (touchedVertexInd != null) {
+                    int touchedVertexInd = mVertexPointer.get(pointerId, -1);
+                    if (touchedVertexInd != -1) {
                         mGraph.moveVertex(touchedVertexInd, xTouch, yTouch);
                     }
                 }
                 invalidate();
                 handled = true;
                 break;
-                */
+
 
             case MotionEvent.ACTION_UP:
+                if (mMode != MODE.MOVE_V) break;
+                mSelectedVertex = -1;
                 clearCirclePointer();
                 invalidate();
                 handled = true;
                 break;
 
             case MotionEvent.ACTION_POINTER_UP:
+                if (mMode != MODE.MOVE_V) break;
+                mSelectedVertex = -1;
                 // not general pointer was up
-                pointerId = event.getPointerId(actionIndex);
-                mVertexPointer.delete(pointerId);
+                clearCirclePointer();
                 invalidate();
                 handled = true;
                 break;
